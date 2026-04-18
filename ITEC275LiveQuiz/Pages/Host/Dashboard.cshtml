@@ -36,7 +36,7 @@
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="card-title">Game History</h5>
-                    @if (!Model.PastGames.Any())
+                    @if (Model.PastGames == null || !Model.PastGames.Any())
                     {
                         <div class="alert alert-info mb-0">
                             <strong>No games yet</strong><br />

@@ -1,4 +1,5 @@
 using ITEC275LiveQuiz.Data;
+using ITEC275LiveQuiz.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ public class DashboardModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppP
     public int TotalParticipants { get; set; }
     public int ActiveGames { get; set; }
     public List<RecentGame> RecentGames { get; set; } = [];
+    public List<LiveGame> PastGames { get; set; } = [];
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -39,6 +41,12 @@ public class DashboardModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppP
                 Status = g.Status,
                 ParticipantCount = g.Participants.Count
             })
+            .ToListAsync();
+
+        PastGames = await dbContext.LiveGames
+            .Where(g => g.HostUserId == userId.Value)
+            .Include(g => g.Quiz)
+            .OrderByDescending(g => g.StartedAt)
             .ToListAsync();
 
         return Page();

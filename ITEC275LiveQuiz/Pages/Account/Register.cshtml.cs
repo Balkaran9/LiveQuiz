@@ -79,3 +79,11 @@ public class RegisterModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPa
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
+
+
+
+
+
+
+
+
