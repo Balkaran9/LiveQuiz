@@ -14,14 +14,12 @@ if (string.IsNullOrEmpty(connectionString) || builder.Environment.IsProduction()
     // Use SQLite for cloud deployment
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlite("Data Source=livequiz.db"));
-    builder.Logging.LogInformation("Using SQLite database for production/cloud deployment");
 }
 else
 {
     // Use SQL Server LocalDB for local development
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlServer(connectionString));
-    builder.Logging.LogInformation("Using SQL Server LocalDB for local development");
 }
 
 // Session
