@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["dotnet-sdk_8"]
+
+[phases.install]
+cmds = ["echo 'Skipping install phase - handled in build'"]
+
+[phases.build]
+cmds = [
+    "cd ITEC275LiveQuiz",
+    "dotnet restore",
+    "dotnet publish -c Release -o ../out"
+]
+
+[start]
+cmd = "dotnet out/ITEC275LiveQuiz.dll"
