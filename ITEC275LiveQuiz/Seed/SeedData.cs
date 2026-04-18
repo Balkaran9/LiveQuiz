@@ -40,7 +40,7 @@ public static class SeedData
                 var q = new Question
                 {
                     QuizId = quiz.QuizId,
-                    Text = $"Sample Question {i}?",
+                    QuestionText = $"Sample Question {i}?",
                     Answers = new List<Answer>()
                 };
                 dbContext.Questions.Add(q);
@@ -51,7 +51,7 @@ public static class SeedData
                     dbContext.Answers.Add(new Answer
                     {
                         QuestionId = q.QuestionId,
-                        Text = $"Option {j}",
+                        AnswerText = $"Option {j}",
                         IsCorrect = (j == 1)
                     });
                 }

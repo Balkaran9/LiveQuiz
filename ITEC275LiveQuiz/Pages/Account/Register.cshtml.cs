@@ -22,6 +22,12 @@ public class RegisterModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPa
             return Page();
         }
 
+        if (Input.Password != Input.ConfirmPassword)
+        {
+            ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
+            return Page();
+        }
+
         var username = Input.Username.Trim();
         var exists = await dbContext.Users.AnyAsync(u => u.Username == username);
         if (exists)
@@ -34,6 +40,7 @@ public class RegisterModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPa
         {
             Username = username,
             Email = Input.Email?.Trim(),
+            FullName = Input.FullName?.Trim() ?? string.Empty,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(Input.Password),
             CreatedAt = DateTime.UtcNow
         };
@@ -49,6 +56,10 @@ public class RegisterModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPa
     public class InputModel
     {
         [Required]
+        [StringLength(100)]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required]
         [StringLength(50)]
         public string Username { get; set; } = string.Empty;
 
@@ -60,5 +71,11 @@ public class RegisterModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPa
         [StringLength(100, MinimumLength = 6)]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm Password")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
