@@ -1,0 +1,341 @@
+@page
+@{
+    ViewData["Title"] = "API Documentation";
+}
+
+<div class="container py-5">
+    <h1 class="mb-4">?? API Documentation</h1>
+    <p class="lead text-muted">RESTful API for LiveQuiz platform integration</p>
+
+    <div class="alert alert-info">
+        <strong>Base URL:</strong> <code>https://yourserver.com/api</code><br />
+        <strong>Rate Limit:</strong> 100 requests per minute per IP<br />
+        <strong>Response Format:</strong> JSON
+    </div>
+
+    <!-- Quizzes Endpoint -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">?? Quizzes API</h4>
+        </div>
+        <div class="card-body">
+            <h5 class="text-success">GET /api/quizzes/public</h5>
+            <p>Retrieve public quizzes with pagination and filtering</p>
+            
+            <h6>Query Parameters:</h6>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Default</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>search</code></td>
+                        <td>string</td>
+                        <td>Search in title/description</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><code>category</code></td>
+                        <td>string</td>
+                        <td>Filter by category</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><code>page</code></td>
+                        <td>int</td>
+                        <td>Page number</td>
+                        <td>1</td>
+                    </tr>
+                    <tr>
+                        <td><code>pageSize</code></td>
+                        <td>int</td>
+                        <td>Items per page (max 100)</td>
+                        <td>20</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Example Request:</h6>
+            <pre class="bg-light p-3 rounded"><code>GET /api/quizzes/public?search=science&category=Education&page=1&pageSize=10</code></pre>
+
+            <h6>Example Response:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "success": true,
+  "data": [
+    {
+      "quizId": 1,
+      "title": "Science Trivia",
+      "description": "Test your science knowledge",
+      "category": "Education",
+      "questionCount": 15,
+      "ownerUsername": "teacher123",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "isPublic": true
+    }
+  ],
+  "message": "Found 1 quizzes",
+  "metadata": {
+    "total": 1,
+    "page": 1,
+    "pageSize": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+
+            <hr />
+
+            <h5 class="text-success">GET /api/quizzes/{id}</h5>
+            <p>Get detailed quiz information including questions (without answers)</p>
+
+            <h6>Example Response:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "success": true,
+  "data": {
+    "quizId": 1,
+    "title": "Science Trivia",
+    "description": "Test your knowledge",
+    "category": "Education",
+    "ownerUsername": "teacher123",
+    "createdAt": "2024-01-15T10:30:00Z",
+    "isPublic": true,
+    "shuffleQuestions": true,
+    "questions": [
+      {
+        "questionId": 1,
+        "text": "What is H2O?",
+        "timeLimitSeconds": 30,
+        "answerCount": 4
+      }
+    ]
+  }
+}</code></pre>
+
+            <hr />
+
+            <h5 class="text-success">GET /api/quizzes/categories</h5>
+            <p>Get list of all available categories</p>
+
+            <h6>Example Response:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "success": true,
+  "data": ["Science", "History", "Geography", "Math"],
+  "message": "Found 4 categories"
+}</code></pre>
+        </div>
+    </div>
+
+    <!-- Games Endpoint -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h4 class="mb-0">?? Games API</h4>
+        </div>
+        <div class="card-body">
+            <h5 class="text-success">GET /api/games/{gameId}/leaderboard</h5>
+            <p>Get current leaderboard for an active game</p>
+
+            <h6>Example Response:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "success": true,
+  "data": {
+    "gameId": 42,
+    "quizTitle": "Science Trivia",
+    "gameStatus": "InProgress",
+    "participantCount": 12,
+    "leaderboard": [
+      {
+        "rank": 1,
+        "nickname": "QuizMaster",
+        "score": 8500,
+        "correct": 9,
+        "incorrect": 1,
+        "averageTimeSeconds": 4.2
+      }
+    ]
+  }
+}</code></pre>
+
+            <hr />
+
+            <h5 class="text-success">GET /api/games/{gameId}/status</h5>
+            <p>Get game status and metadata</p>
+
+            <h6>Example Response:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "success": true,
+  "data": {
+    "gameId": 42,
+    "joinCode": "ABC123",
+    "status": "InProgress",
+    "quizTitle": "Science Trivia",
+    "participantCount": 12,
+    "questionCount": 10,
+    "currentQuestionNumber": 5,
+    "startedAt": "2024-01-15T14:00:00Z",
+    "endedAt": null
+  }
+}</code></pre>
+
+            <hr />
+
+            <h5 class="text-warning">POST /api/games/join</h5>
+            <p class="text-danger"><strong>?? Rate Limited:</strong> 10 requests per minute</p>
+            <p>Join a game as a participant</p>
+
+            <h6>Request Body:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "joinCode": "ABC123",
+  "nickname": "Player1"
+}</code></pre>
+
+            <h6>Example Response:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "success": true,
+  "data": {
+    "gameId": 42,
+    "participantId": 123,
+    "nickname": "Player1",
+    "message": "Successfully joined game!"
+  },
+  "message": "Joined successfully"
+}</code></pre>
+
+            <h6>Error Responses:</h6>
+            <pre class="bg-light p-3 rounded"><code>// Invalid join code
+{
+  "success": false,
+  "message": "Invalid join code"
+}
+
+// Nickname taken
+{
+  "success": false,
+  "message": "Nickname already taken in this game"
+}
+
+// Game not accepting players
+{
+  "success": false,
+  "message": "Game is not accepting new participants"
+}</code></pre>
+        </div>
+    </div>
+
+    <!-- Health Check -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">?? Health Check</h4>
+        </div>
+        <div class="card-body">
+            <h5 class="text-success">GET /health</h5>
+            <p>Check API availability</p>
+
+            <h6>Example Response:</h6>
+            <pre class="bg-light p-3 rounded"><code>{
+  "status": "healthy",
+  "timestamp": "2024-01-15T14:30:00Z",
+  "version": "2.0.0"
+}</code></pre>
+        </div>
+    </div>
+
+    <!-- Error Codes -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">?? Error Codes</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Meaning</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>200</code></td>
+                        <td>OK</td>
+                        <td>Request successful</td>
+                    </tr>
+                    <tr>
+                        <td><code>400</code></td>
+                        <td>Bad Request</td>
+                        <td>Invalid parameters or request body</td>
+                    </tr>
+                    <tr>
+                        <td><code>404</code></td>
+                        <td>Not Found</td>
+                        <td>Resource doesn't exist</td>
+                    </tr>
+                    <tr>
+                        <td><code>429</code></td>
+                        <td>Too Many Requests</td>
+                        <td>Rate limit exceeded</td>
+                    </tr>
+                    <tr>
+                        <td><code>500</code></td>
+                        <td>Internal Server Error</td>
+                        <td>Server error occurred</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Example Integration -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">?? Example Integration (JavaScript)</h4>
+        </div>
+        <div class="card-body">
+            <pre class="bg-light p-3 rounded"><code>// Fetch public quizzes
+fetch('/api/quizzes/public?search=science&page=1&pageSize=10')
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Quizzes:', data.data);
+      console.log('Total:', data.metadata.total);
+    }
+  });
+
+// Join a game
+fetch('/api/games/join', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    joinCode: 'ABC123',
+    nickname: 'Player1'
+  })
+})
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Joined game:', data.data.gameId);
+    } else {
+      console.error('Error:', data.message);
+    }
+  });
+
+// Get leaderboard
+fetch('/api/games/42/leaderboard')
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      data.data.leaderboard.forEach(entry => {
+        console.log(`${entry.rank}. ${entry.nickname}: ${entry.score} pts`);
+      });
+    }
+  });</code></pre>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <a asp-page="/Index" class="btn btn-primary">Back to Home</a>
+    </div>
+</div>

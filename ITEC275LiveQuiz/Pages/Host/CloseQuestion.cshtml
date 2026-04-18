@@ -1,0 +1,93 @@
+@page
+@model ITEC275LiveQuiz.Pages.Host.CloseQuestionModel
+@{
+    ViewData["Title"] = "Question Results";
+}
+
+@if (Model.LiveQuestion is null)
+{
+    <div class="alert alert-danger">Live question not found.</div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>?? Question Results</h1>
+            <p class="mb-0 text-muted">@Model.LiveQuestion.Question?.QuestionText</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-page="Leaderboard" asp-route-gameId="@Model.LiveQuestion.LiveGameId" class="btn btn-outline-primary">?? Leaderboard</a>
+            <a asp-page="NextQuestion" asp-route-gameId="@Model.LiveQuestion.LiveGameId" class="btn btn-success">? Next Question</a>
+        </div>
+    </div>
+
+    @if (!Model.Results.Any())
+    {
+        <div class="alert alert-info">No responses were submitted for this question.</div>
+    }
+    else
+    {
+        var correct = Model.Results.Count(r => r.IsCorrect);
+        var total = Model.Results.Count;
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="display-5 fw-bold text-success">@correct</div>
+                        <div class="text-muted">Correct</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="display-5 fw-bold text-danger">@(total - correct)</div>
+                        <div class="text-muted">Incorrect</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="display-5 fw-bold text-primary">@total</div>
+                        <div class="text-muted">Total Responses</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header"><strong>Player Responses</strong></div>
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nickname</th>
+                        <th>Answer</th>
+                        <th>Result</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Results)
+                    {
+                        <tr>
+                            <td>?? @r.Nickname</td>
+                            <td>@r.AnswerText</td>
+                            <td>
+                                @if (r.IsCorrect)
+                                {
+                                    <span class="badge bg-success">? Correct</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">? Incorrect</span>
+                                }
+                            </td>
+                            <td class="text-center">@Math.Round(r.TimeMs / 1000.0, 1)s</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}

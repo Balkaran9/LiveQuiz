@@ -1,0 +1,220 @@
+@page
+@model ITEC275LiveQuiz.Pages.Host.AnalyticsModel
+@{
+    ViewData["Title"] = "Game Analytics";
+}
+
+<h1 class="mb-4">?? Advanced Analytics</h1>
+<p class="lead text-muted">@Model.QuizTitle</p>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm analytics-card">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-success">@Math.Round(Model.AverageAccuracy, 1)%</div>
+                <div class="text-muted">Average Accuracy</div>
+                <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: @Model.AverageAccuracy%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm analytics-card">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-primary">@Math.Round(Model.AverageResponseTime, 1)s</div>
+                <div class="text-muted">Avg Response Time</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm analytics-card">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-warning">@Model.QuestionStats.Count</div>
+                <div class="text-muted">Questions Asked</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm analytics-card">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-info">@Model.TopPerformers.Count</div>
+                <div class="text-muted">Total Players</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Question Performance -->
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <strong>?? Question Performance Breakdown</strong>
+            </div>
+            <div class="card-body">
+                <canvas id="questionChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Difficulty Analysis -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <strong>?? Difficulty Analysis</strong>
+            </div>
+            <div class="card-body">
+                <h6 class="text-success">? Easiest Question</h6>
+                <p class="small text-muted">@Model.EasiestQuestion</p>
+                <hr />
+                <h6 class="text-danger">? Hardest Question</h6>
+                <p class="small text-muted">@Model.HardestQuestion</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performers -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <strong>?? Top 10 Performers</strong>
+            </div>
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Points</th>
+                        <th>Accuracy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var rank = 1; }
+                    @foreach (var p in Model.TopPerformers)
+                    {
+                        <tr>
+                            <td>@(rank <= 3 ? (rank == 1 ? "??" : rank == 2 ? "??" : "??") : $"#{rank}")</td>
+                            <td>@p.Nickname</td>
+                            <td class="fw-bold text-primary">@p.TotalPoints</td>
+                            <td>@Math.Round(p.Accuracy, 1)%</td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Question Details -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <strong>?? Question-by-Question Stats</strong>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                @foreach (var q in Model.QuestionStats)
+                {
+                    <div class="mb-3 p-3 border rounded">
+                        <h6 class="mb-2">@q.QuestionText</h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-muted">Accuracy:</small>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" style="width: @q.Accuracy%">
+                                        @Math.Round(q.Accuracy, 0)%
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Avg Time: @Math.Round(q.AverageTime / 1000.0, 1)s</small><br />
+                                <small class="text-success">? @q.CorrectCount</small> / 
+                                <small class="text-danger">? @q.IncorrectCount</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export & Actions -->
+<div class="text-center mb-5">
+    <a asp-page="Leaderboard" asp-route-gameId="@Model.LiveGameId" class="btn btn-primary me-2">?? View Leaderboard</a>
+    <a asp-page="EndGame" asp-route-gameId="@Model.LiveGameId" class="btn btn-outline-secondary">?? Final Results</a>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('questionChart');
+        const labels = [@Html.Raw(string.Join(",", Model.QuestionStats.Select((q, i) => $"'Q{i + 1}'")))];
+        const accuracyData = [@string.Join(",", Model.QuestionStats.Select(q => Math.Round(q.Accuracy, 1)))];
+        const avgTimeData = [@string.Join(",", Model.QuestionStats.Select(q => Math.Round(q.AverageTime / 1000.0, 1)))];
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Accuracy (%)',
+                        data: accuracyData,
+                        backgroundColor: 'rgba(38, 137, 13, 0.7)',
+                        borderColor: 'rgba(38, 137, 13, 1)',
+                        borderWidth: 2,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Avg Time (s)',
+                        data: avgTimeData,
+                        backgroundColor: 'rgba(70, 23, 143, 0.7)',
+                        borderColor: 'rgba(70, 23, 143, 1)',
+                        borderWidth: 2,
+                        type: 'line',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'Accuracy (%)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        title: { display: true, text: 'Time (s)' },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                }
+            }
+        });
+    </script>
+}
+
+<style>
+    .analytics-card {
+        transition: all .3s ease;
+    }
+    .analytics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,.15) !important;
+    }
+</style>

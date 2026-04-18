@@ -1,0 +1,110 @@
+@page
+@model ITEC275LiveQuiz.Pages.Host.DashboardModel
+@{
+    ViewData["Title"] = "Host Dashboard";
+}
+
+<h1 class="mb-4">?? Host Dashboard</h1>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-primary">@Model.TotalQuizzes</div>
+                <div class="text-muted">Total Quizzes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-success">@Model.TotalGames</div>
+                <div class="text-muted">Games Hosted</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-warning">@Model.TotalParticipants</div>
+                <div class="text-muted">Total Players</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-info">@Model.ActiveGames</div>
+                <div class="text-muted">Active Games</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <strong>?? Quick Actions</strong>
+            </div>
+            <div class="list-group list-group-flush">
+                <a asp-page="/Quizzes/Create" class="list-group-item list-group-item-action">
+                    <strong>? Create New Quiz</strong>
+                    <p class="mb-0 text-muted small">Start building a new quiz from scratch</p>
+                </a>
+                <a asp-page="/Quizzes/Index" class="list-group-item list-group-item-action">
+                    <strong>?? My Quizzes</strong>
+                    <p class="mb-0 text-muted small">View and manage all your quizzes</p>
+                </a>
+                <a asp-page="/Host/GameHistory" class="list-group-item list-group-item-action">
+                    <strong>?? Game History</strong>
+                    <p class="mb-0 text-muted small">Review past games and results</p>
+                </a>
+                <a asp-page="/Quizzes/Public" class="list-group-item list-group-item-action">
+                    <strong>?? Browse Public Quizzes</strong>
+                    <p class="mb-0 text-muted small">Find and clone community quizzes</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <strong>?? Recent Games</strong>
+            </div>
+            @if (!Model.RecentGames.Any())
+            {
+                <div class="card-body text-center text-muted py-4">
+                    No games yet! Start hosting to see your activity here.
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var game in Model.RecentGames)
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>@game.QuizTitle</strong>
+                                    <p class="mb-0 text-muted small">@game.StartedAt.ToLocalTime().ToString("MMM d, h:mm tt") • @game.ParticipantCount player(s)</p>
+                                </div>
+                                <div>
+                                    @if (game.Status == "Ended")
+                                    {
+                                        <a asp-page="Leaderboard" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-primary">Results</a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-page="Lobby" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-success">Resume</a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+@page "{id:int}"
+@model ITEC275LiveQuiz.Pages.Quizzes.DeleteModel
+@{
+    ViewData["Title"] = "Delete Quiz";
+}
+
+@if (Model.Quiz is null)
+{
+    <div class="alert alert-danger">Quiz not found.</div>
+}
+else
+{
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">?? Delete Quiz</h4>
+                </div>
+                <div class="card-body">
+                    <p class="fs-5">Are you sure you want to permanently delete this quiz?</p>
+                    <div class="alert alert-warning">
+                        <strong>@Model.Quiz.Title</strong><br />
+                        <small class="text-muted">@Model.Quiz.Questions.Count question(s) will also be deleted.</small>
+                    </div>
+                    <form method="post">
+                        <button type="submit" class="btn btn-danger me-2">Yes, Delete</button>
+                        <a asp-page="Details" asp-route-id="@Model.Quiz.QuizId" class="btn btn-outline-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}

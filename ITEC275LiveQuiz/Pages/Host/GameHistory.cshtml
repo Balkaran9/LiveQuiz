@@ -1,0 +1,85 @@
+@page
+@model ITEC275LiveQuiz.Pages.Host.GameHistoryModel
+@{
+    ViewData["Title"] = "Game History";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>?? Game History</h1>
+    <a asp-page="/Quizzes/Index" class="btn btn-outline-primary">? My Quizzes</a>
+</div>
+
+@if (!Model.Games.Any())
+{
+    <div class="alert alert-info text-center">
+        <div class="display-4 mb-3">??</div>
+        <h5>No games yet</h5>
+        <p class="mb-0">Start hosting quizzes to see your game history here!</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Quiz</th>
+                    <th>Join Code</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Participants</th>
+                    <th>Questions</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var game in Model.Games)
+                {
+                    <tr>
+                        <td class="fw-semibold">@game.QuizTitle</td>
+                        <td><span class="badge bg-secondary">@game.JoinCode</span></td>
+                        <td>@game.StartedAt.ToLocalTime().ToString("MMM d, h:mm tt")</td>
+                        <td>
+                            @if (game.EndedAt.HasValue)
+                            {
+                                var duration = game.EndedAt.Value - game.StartedAt;
+                                <span>@((int)duration.TotalMinutes)m @duration.Seconds%s</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (game.Status == "Ended")
+                            {
+                                <span class="badge bg-secondary">Ended</span>
+                            }
+                            else if (game.Status == "InProgress")
+                            {
+                                <span class="badge bg-success">In Progress</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">@game.Status</span>
+                            }
+                        </td>
+                        <td>@game.ParticipantCount</td>
+                        <td>@game.QuestionCount</td>
+                        <td>
+                            @if (game.Status == "Ended")
+                            {
+                                <a asp-page="Leaderboard" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-primary">?? Results</a>
+                            }
+                            else
+                            {
+                                <a asp-page="Lobby" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-success">? Resume</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

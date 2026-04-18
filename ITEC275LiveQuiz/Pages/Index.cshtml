@@ -1,0 +1,68 @@
+﻿@page
+@model ITEC275LiveQuiz.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="hero-section text-center mb-5">
+    <h1>🎯 LiveQuiz</h1>
+    <p class="lead">Host live quizzes, challenge your friends, and see who wins in real time!</p>
+    <a asp-page="/Tour" class="btn btn-light btn-lg mt-3">✨ Take a Quick Tour</a>
+</div>
+
+<div class="row justify-content-center mb-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h4 class="text-center mb-3">⚡ Join a Live Game</h4>
+                <form method="get" asp-page="/Play/Join">
+                    <div class="input-group input-group-lg">
+                        <input type="text" name="code" class="form-control text-uppercase fw-bold text-center"
+                               placeholder="ENTER CODE" maxlength="6" style="letter-spacing:.2rem" />
+                        <button type="submit" class="btn btn-success px-4">GO!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center text-center">
+    @if (Model.IsLoggedIn)
+    {
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="display-4 mb-2">📝</div>
+                    <h5>My Quizzes</h5>
+                    <p class="text-muted">Create and manage your quizzes</p>
+                    <a asp-page="/Quizzes/Index" class="btn btn-primary">Go to My Quizzes</a>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 p-3">
+            <div class="card-body">
+                <div class="display-4 mb-2">🌍</div>
+                <h5>Public Quizzes</h5>
+                <p class="text-muted">Browse quizzes shared by the community</p>
+                <a asp-page="/Quizzes/Public" class="btn btn-outline-primary">Browse</a>
+            </div>
+        </div>
+    </div>
+    @if (!Model.IsLoggedIn)
+    {
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="display-4 mb-2">🏆</div>
+                    <h5>Host a Quiz</h5>
+                    <p class="text-muted">Register to create and host your own live quizzes</p>
+                    <a asp-page="/Account/Register" class="btn btn-primary me-2">Register</a>
+                    <a asp-page="/Account/Login" class="btn btn-outline-secondary">Login</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

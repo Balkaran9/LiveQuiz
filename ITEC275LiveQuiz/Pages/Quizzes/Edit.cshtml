@@ -1,0 +1,45 @@
+@page "{id:int}"
+@model ITEC275LiveQuiz.Pages.Quizzes.EditModel
+@{
+    ViewData["Title"] = "Edit Quiz";
+}
+
+<h1>Edit Quiz</h1>
+
+<form method="post" class="mt-3">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Title" class="form-label"></label>
+        <input asp-for="Input.Title" class="form-control" />
+        <span asp-validation-for="Input.Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Category" class="form-label"></label>
+        <input asp-for="Input.Category" class="form-control" list="categoryList" placeholder="e.g. Science, History, Trivia" />
+        <datalist id="categoryList">
+            <option value="General Knowledge"></option>
+            <option value="Science"></option>
+            <option value="History"></option>
+            <option value="Geography"></option>
+            <option value="Math"></option>
+            <option value="Programming"></option>
+            <option value="Sports"></option>
+            <option value="Entertainment"></option>
+        </datalist>
+        <span asp-validation-for="Input.Category" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="Input.IsPublic" class="form-check-input" />
+        <label asp-for="Input.IsPublic" class="form-check-label"></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-page="Details" asp-route-id="@Model.QuizId" class="btn btn-link">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

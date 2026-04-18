@@ -1,0 +1,43 @@
+@page
+@model ITEC275LiveQuiz.Pages.Quizzes.Questions.CreateModel
+@{
+    ViewData["Title"] = "Add Question";
+}
+
+<h1>Add Question</h1>
+<p class="text-muted">@Model.QuizTitle</p>
+
+<form method="post" class="mt-3">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Input.QuestionText" class="form-label"></label>
+        <textarea asp-for="Input.QuestionText" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Input.QuestionText" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.TimeLimitSeconds" class="form-label"></label>
+            <input asp-for="Input.TimeLimitSeconds" class="form-control" />
+            <span asp-validation-for="Input.TimeLimitSeconds" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.SortOrder" class="form-label"></label>
+            <input asp-for="Input.SortOrder" class="form-control" />
+            <span asp-validation-for="Input.SortOrder" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="Input.ShuffleAnswers" class="form-check-input" />
+        <label asp-for="Input.ShuffleAnswers" class="form-check-label">Shuffle answers (randomize answer order for participants)</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-page="/Quizzes/Details" asp-route-id="@Model.QuizId" class="btn btn-link">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

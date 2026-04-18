@@ -1,0 +1,118 @@
+@page "{id:int}"
+@model ITEC275LiveQuiz.Pages.Quizzes.DetailsModel
+@{
+    ViewData["Title"] = "Quiz Details";
+}
+
+@if (Model.Quiz is null)
+{
+    <div class="alert alert-danger">Quiz not found.</div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1>@Model.Quiz.Title</h1>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="badge @(Model.Quiz.IsPublic ? "bg-success" : "bg-secondary")">
+                    @(Model.Quiz.IsPublic ? "?? Public" : "?? Private")
+                </span>
+                @if (!string.IsNullOrWhiteSpace(Model.Quiz.Category))
+                {
+                    <span class="badge bg-info text-dark">?? @Model.Quiz.Category</span>
+                }
+                @if (Model.Quiz.ShuffleQuestions)
+                {
+                    <span class="badge bg-warning text-dark">?? Shuffle On</span>
+                }
+                <small class="text-muted ms-2">Created @Model.Quiz.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</small>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-page="Edit" asp-route-id="@Model.Quiz.QuizId" class="btn btn-outline-secondary">?? Edit Quiz</a>
+            <a asp-page="Clone" asp-route-id="@Model.Quiz.QuizId" class="btn btn-outline-info">?? Clone</a>
+            <a asp-page="/Host/Start" asp-route-quizId="@Model.Quiz.QuizId" class="btn btn-success">? Start Live Game</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 fw-bold text-primary">@Model.Quiz.Questions.Count</div>
+                    <div class="text-muted small">Total Questions</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 fw-bold text-success">@Model.Quiz.Questions.Sum(q => q.Answers.Count)</div>
+                    <div class="text-muted small">Total Answers</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 fw-bold text-warning">@(Model.Quiz.Questions.Any() ? (int)Model.Quiz.Questions.Average(q => q.TimeLimitSeconds) : 0)s</div>
+                    <div class="text-muted small">Avg Time Limit</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 fw-bold text-info">~@(Model.Quiz.Questions.Sum(q => q.TimeLimitSeconds) / 60)min</div>
+                    <div class="text-muted small">Est. Duration</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <a asp-page="/Quizzes/Questions/Create" asp-route-quizId="@Model.Quiz.QuizId" class="btn btn-primary">Add Question</a>
+        <a asp-page="Index" class="btn btn-link">Back to My Quizzes</a>
+    </div>
+
+    @if (!Model.Quiz.Questions.Any())
+    {
+        <div class="alert alert-info">No questions yet.</div>
+    }
+    else
+    {
+        @foreach (var question in Model.Quiz.Questions.OrderBy(q => q.SortOrder))
+        {
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Q@question.SortOrder</strong>
+                    <div>
+                        <span class="badge bg-secondary me-2">@question.TimeLimitSeconds sec</span>
+                        <a asp-page="/Quizzes/Questions/Edit" asp-route-id="@question.QuestionId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a asp-page="/Quizzes/Questions/Delete" asp-route-id="@question.QuestionId" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>@question.QuestionText</p>
+                    <ul class="list-group mb-3">
+                        @foreach (var answer in question.Answers.OrderBy(a => a.AnswerId))
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@answer.AnswerText</span>
+                                <span>
+                                    @if (answer.IsCorrect)
+                                    {
+                                        <span class="badge bg-success me-2">Correct</span>
+                                    }
+                                    <a asp-page="/Quizzes/Answers/Edit" asp-route-id="@answer.AnswerId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <a asp-page="/Quizzes/Answers/Delete" asp-route-id="@answer.AnswerId" class="btn btn-sm btn-outline-danger">Delete</a>
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                    <a asp-page="/Quizzes/Answers/Create" asp-route-questionId="@question.QuestionId" class="btn btn-sm btn-primary">Add Answer</a>
+                </div>
+            </div>
+        }
+    }
+}

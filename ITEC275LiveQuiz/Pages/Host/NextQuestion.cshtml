@@ -1,0 +1,85 @@
+﻿@page
+@model ITEC275LiveQuiz.Pages.Host.NextQuestionModel
+@{
+    ViewData["Title"] = "Live Question";
+}
+
+@if (Model.Game is null)
+{
+    <div class="alert alert-danger">Game not found.</div>
+}
+else if (Model.NoMoreQuestions)
+{
+    <div class="text-center mt-5">
+        <div class="display-1">🏁</div>
+        <h2 class="mt-3">All Questions Complete!</h2>
+        <p class="lead text-muted">Time to see who won.</p>
+        <a asp-page="Leaderboard" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-primary btn-lg me-2">🏆 View Leaderboard</a>
+        <a asp-page="EndGame" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-danger btn-lg">⏹ End Game</a>
+    </div>
+}
+else if (Model.LiveQuestion is null || Model.Question is null)
+{
+    <div class="alert alert-danger">Question could not be loaded.</div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="text-muted mb-0">🎮 @Model.Game.Quiz?.Title</h5>
+            <span class="badge bg-secondary">Join code: @Model.Game.JoinCode</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-center">
+                <div class="fw-bold fs-4 text-success">@Model.ResponseCount / @Model.ParticipantCount</div>
+                <small class="text-muted">Answered</small>
+                @if (Model.ResponseCount == Model.ParticipantCount && Model.ParticipantCount > 0)
+                {
+                    <div class="badge bg-success mt-1">✓ All answered!</div>
+                }
+            </div>
+            <div class="timer-display" id="hostTimer">@Model.Question.TimeLimitSeconds</div>
+        </div>
+    </div>
+
+    <div class="question-card mb-4">
+        <h3>@Model.Question.QuestionText</h3>
+        <small class="opacity-75">Time limit: @Model.Question.TimeLimitSeconds seconds</small>
+    </div>
+
+    <div class="row g-3 mb-4">
+        @{ var colors = new[] { "answer-btn-0", "answer-btn-1", "answer-btn-2", "answer-btn-3" }; var shapes = new[] { "▲", "◆", "●", "■" }; var idx = 0; }
+        @foreach (var answer in Model.Answers)
+        {
+            <div class="col-md-6">
+                <div class="answer-btn @colors[idx % 4] p-3 d-flex align-items-center gap-2">
+                    <span class="fs-4">@shapes[idx % 4]</span>
+                    <span>@answer.AnswerText</span>
+                    @if (answer.IsCorrect) { <span class="ms-auto badge bg-light text-dark">✓ Correct</span> }
+                </div>
+            </div>
+            idx++;
+        }
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <a asp-page="Lobby" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-secondary">← Lobby</a>
+        <a asp-page="CloseQuestion" asp-route-liveQuestionId="@Model.LiveQuestion.LiveQuestionId" class="btn btn-danger btn-lg">⏸ Close Question</a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        const timeLimit = @(Model.Question?.TimeLimitSeconds ?? 30);
+        const start = Date.now();
+        const el = document.getElementById('hostTimer');
+        if (el) {
+            const iv = setInterval(() => {
+                const secs = Math.max(0, timeLimit - Math.floor((Date.now() - start) / 1000));
+                el.textContent = secs;
+                if (secs <= 5) el.classList.add('danger');
+                if (secs === 0) clearInterval(iv);
+            }, 500);
+        }
+    </script>
+}

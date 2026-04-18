@@ -1,0 +1,43 @@
+@page
+@model ITEC275LiveQuiz.Pages.Play.JoinModel
+@{
+    ViewData["Title"] = "Join Game";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">Join a Live Quiz</h1>
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.JoinCode" class="form-label"></label>
+                        <input asp-for="Input.JoinCode" class="form-control text-uppercase" maxlength="6" placeholder="e.g. ABC123" />
+                        <span asp-validation-for="Input.JoinCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Nickname" class="form-label"></label>
+                        <input asp-for="Input.Nickname" class="form-control" placeholder="Your nickname" />
+                        <span asp-validation-for="Input.Nickname" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">Join Game</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelector('input[name="Input.JoinCode"]').addEventListener('input', function () {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
+}

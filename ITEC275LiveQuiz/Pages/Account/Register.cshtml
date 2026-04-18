@@ -1,0 +1,57 @@
+@page
+@model ITEC275LiveQuiz.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h1>Register</h1>
+
+<form method="post" class="mt-3">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Username" class="form-label"></label>
+        <input asp-for="Input.Username" class="form-control" />
+        <span asp-validation-for="Input.Username" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Email" class="form-label"></label>
+        <input asp-for="Input.Email" class="form-control" type="email" placeholder="optional" />
+        <span asp-validation-for="Input.Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Password" class="form-label"></label>
+        <input asp-for="Input.Password" class="form-control" id="passwordInput" type="password" />
+        <span asp-validation-for="Input.Password" class="text-danger"></span>
+        <div id="passwordStrength" class="mt-1 small"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create account</button>
+    <a asp-page="/Account/Login" class="btn btn-link">Login</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const pwInput = document.getElementById('passwordInput');
+        const pwStrength = document.getElementById('passwordStrength');
+        if (pwInput && pwStrength) {
+            pwInput.addEventListener('input', function () {
+                const pw = this.value;
+                let strength = 0;
+                if (pw.length >= 6) strength++;
+                if (pw.length >= 10) strength++;
+                if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) strength++;
+                if (/\d/.test(pw)) strength++;
+                if (/[@@$!%*?&#]/.test(pw)) strength++;
+
+                const labels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+                const colors = ['', 'danger', 'warning', 'info', 'success', 'success'];
+                pwStrength.className = strength > 0 ? `text-${colors[strength]} small` : '';
+                pwStrength.textContent = strength > 0 ? `Password Strength: ${labels[strength]}` : '';
+            });
+        }
+    </script>
+}

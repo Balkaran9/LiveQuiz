@@ -1,0 +1,65 @@
+@page
+@model ITEC275LiveQuiz.Pages.Host.EndGameModel
+@{
+    ViewData["Title"] = "Game Over";
+}
+
+@if (Model.Game is null)
+{
+    <div class="alert alert-danger">Game not found.</div>
+}
+else
+{
+    <div class="text-center mb-5">
+        <div class="display-1">??</div>
+        <h1 class="fw-bold mt-2">Game Over!</h1>
+        <p class="lead text-muted">@Model.Game.Quiz?.Title</p>
+        <p class="text-muted">Ended at @Model.Game.EndedAt?.ToLocalTime().ToString("MMMM d, yyyy h:mm tt")</p>
+    </div>
+
+    @if (!Model.Entries.Any())
+    {
+        <div class="alert alert-info text-center">No participants responded.</div>
+    }
+    else
+    {
+        <h3 class="text-center mb-4">?? Final Standings</h3>
+        <div class="card shadow-sm">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:60px">Rank</th>
+                        <th>Nickname</th>
+                        <th class="text-center">Score</th>
+                        <th class="text-center">? Correct</th>
+                        <th class="text-center">? Wrong</th>
+                        <th class="text-center">Avg Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var rank = 1; }
+                    @foreach (var e in Model.Entries)
+                    {
+                        <tr class="@(rank == 1 ? "rank-1" : rank == 2 ? "rank-2" : rank == 3 ? "rank-3" : "")">
+                            <td class="fw-bold fs-5">
+                                @(rank == 1 ? "??" : rank == 2 ? "??" : rank == 3 ? "??" : $"#{rank}")
+                            </td>
+                            <td class="fw-semibold">@e.Nickname</td>
+                            <td class="text-center fw-bold">@e.Score</td>
+                            <td class="text-center text-success">@e.TotalCorrect</td>
+                            <td class="text-center text-danger">@e.TotalIncorrect</td>
+                            <td class="text-center">@Math.Round(e.AvgTimeMs / 1000.0, 1)s</td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="text-center mb-5">
+        <a asp-page="Analytics" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-info me-2">?? Advanced Analytics</a>
+        <a asp-page-handler="Export" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-success">?? Export CSV</a>
+        <a asp-page="/Quizzes/Index" class="btn btn-primary btn-lg">?? My Quizzes</a>
+    </div>
+}

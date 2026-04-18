@@ -1,0 +1,110 @@
+@page
+@model ITEC275LiveQuiz.Pages.TourModel
+@{
+    ViewData["Title"] = "Quick Tour";
+}
+
+<div class="container py-5">
+    <h1 class="text-center mb-5"><span class="emoji">?</span> Welcome to LiveQuiz!</h1>
+
+    <div class="row g-4">
+        <!-- Step 1 -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><span class="emoji">1??</span> For Players</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="display-1 emoji">??</div>
+                    </div>
+                    <ol class="fs-5">
+                        <li class="mb-2">Get a <strong class="text-primary">join code</strong> from your host</li>
+                        <li class="mb-2">Click <strong>"Join Game"</strong></li>
+                        <li class="mb-2">Enter code + pick a nickname</li>
+                        <li class="mb-2">Answer questions FAST for bonus points!</li>
+                        <li>View your stats at the end <span class="emoji">??</span></li>
+                    </ol>
+                    <div class="text-center mt-4">
+                        <a asp-page="/Play/Join" class="btn btn-success btn-lg"><span class="emoji">??</span> Join Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><span class="emoji">2??</span> For Hosts</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="display-1 emoji">??</div>
+                    </div>
+                    <ol class="fs-5">
+                        <li class="mb-2"><strong>Register</strong> for a free account</li>
+                        <li class="mb-2">Create a quiz with questions</li>
+                        <li class="mb-2">Click <strong>"Start Game"</strong></li>
+                        <li class="mb-2">Share the join code with players</li>
+                        <li>Control the game flow & view results!</li>
+                    </ol>
+                    <div class="text-center mt-4">
+                        <a asp-page="/Account/Register" class="btn btn-primary btn-lg me-2"><span class="emoji">??</span> Register</a>
+                        <a asp-page="/Account/Login" class="btn btn-outline-primary btn-lg"><span class="emoji">??</span> Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><span class="emoji">?</span> Key Features</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3 text-center">
+                            <div class="display-4 emoji">??</div>
+                            <h6 class="mt-2">Points System</h6>
+                            <small class="text-muted">1000 base + speed bonus</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="display-4 emoji">??</div>
+                            <h6 class="mt-2">Keyboard Shortcuts</h6>
+                            <small class="text-muted">Press 1-4 for quick answers</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="display-4 emoji">??</div>
+                            <h6 class="mt-2">Live Stats</h6>
+                            <small class="text-muted">Real-time leaderboards</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="display-4 emoji">??</div>
+                            <h6 class="mt-2">Public Quizzes</h6>
+                            <small class="text-muted">Browse & clone community quizzes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center mt-5">
+        <h3 class="mb-4">Ready to get started?</h3>
+        <a asp-page="/Index" class="btn btn-primary btn-lg px-5"><span class="emoji">??</span> Go to Home</a>
+        <a asp-page="/Help" class="btn btn-outline-secondary btn-lg px-5"><span class="emoji">??</span> View Full Guide</a>
+    </div>
+</div>
+
+<style>
+    .card-header h4 { font-weight: 700; }
+    ol li strong { color: #46178f; }
+    .emoji {
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif !important;
+    }
+</style>

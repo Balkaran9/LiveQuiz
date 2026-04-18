@@ -1,0 +1,42 @@
+{
+  "name": "LiveQuiz - Real-time Quiz Platform",
+  "short_name": "LiveQuiz",
+  "description": "Host and play live quizzes in real-time, similar to Kahoot!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#46178f",
+  "theme_color": "#46178f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "540x720",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["education", "games"],
+  "shortcuts": [
+    {
+      "name": "Join Game",
+      "short_name": "Join",
+      "description": "Join a live quiz game",
+      "url": "/Play/Join",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Quizzes",
+      "short_name": "Quizzes",
+      "description": "Manage your quizzes",
+      "url": "/Quizzes/Index",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

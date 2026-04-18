@@ -1,0 +1,75 @@
+@page "{id:int}"
+@model ITEC275LiveQuiz.Pages.Quizzes.Questions.EditModel
+@{
+    ViewData["Title"] = "Edit Question";
+}
+
+@if (Model.Question is null)
+{
+    <div class="alert alert-danger">Question not found.</div>
+}
+else
+{
+    <h1>Edit Question</h1>
+    <p class="text-muted">@Model.Question.Quiz?.Title</p>
+
+    <form method="post" class="mt-3">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="Input.QuestionText" class="form-label"></label>
+            <textarea asp-for="Input.QuestionText" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Input.QuestionText" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.TimeLimitSeconds" class="form-label"></label>
+                <input asp-for="Input.TimeLimitSeconds" class="form-control" />
+                <span asp-validation-for="Input.TimeLimitSeconds" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.SortOrder" class="form-label"></label>
+                <input asp-for="Input.SortOrder" class="form-control" />
+                <span asp-validation-for="Input.SortOrder" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-check mb-3">
+            <input asp-for="Input.ShuffleAnswers" class="form-check-input" />
+            <label asp-for="Input.ShuffleAnswers" class="form-check-label">Shuffle answers (randomize answer order for participants)</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-page="/Quizzes/Details" asp-route-id="@Model.Question.QuizId" class="btn btn-link">Back</a>
+    </form>
+
+    <hr />
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Answers</h2>
+        <a asp-page="/Quizzes/Answers/Create" asp-route-questionId="@Model.Question.QuestionId" class="btn btn-sm btn-primary">Add Answer</a>
+    </div>
+
+    <ul class="list-group mt-3">
+        @foreach (var answer in Model.Answers)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    @answer.AnswerText
+                    @if (answer.IsCorrect)
+                    {
+                        <span class="badge bg-success ms-2">Correct</span>
+                    }
+                </span>
+                <span>
+                    <a asp-page="/Quizzes/Answers/Edit" asp-route-id="@answer.AnswerId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a asp-page="/Quizzes/Answers/Delete" asp-route-id="@answer.AnswerId" class="btn btn-sm btn-outline-danger">Delete</a>
+                </span>
+            </li>
+        }
+    </ul>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
