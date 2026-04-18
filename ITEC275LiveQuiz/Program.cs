@@ -5,19 +5,23 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database - Check if we're in production (cloud) or development (local)
+// Database configuration - Use SQLite for Railway/Production, SQL Server for local dev
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (builder.Environment.IsProduction() && string.IsNullOrEmpty(connectionString))
+
+// Check if we're on Railway or other cloud platform (no SQL Server available)
+if (string.IsNullOrEmpty(connectionString) || builder.Environment.IsProduction())
 {
-    // Use SQLite for Railway deployment (no SQL Server needed!)
+    // Use SQLite for cloud deployment
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlite("Data Source=livequiz.db"));
+    builder.Logging.LogInformation("Using SQLite database for production/cloud deployment");
 }
 else
 {
     // Use SQL Server LocalDB for local development
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(connectionString!));
+        options.UseSqlServer(connectionString));
+    builder.Logging.LogInformation("Using SQL Server LocalDB for local development");
 }
 
 // Session
@@ -26,7 +30,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(2);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Changed for Railway
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
 // Caching
@@ -75,12 +79,20 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     
-    logger.LogInformation("Initializing database...");
-    await db.Database.EnsureCreatedAsync();
-    logger.LogInformation("Database created successfully");
-    
-    await SeedData.InitializeAsync(db);
-    logger.LogInformation("Seed data loaded");
+    try
+    {
+        logger.LogInformation("Initializing database...");
+        await db.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database created successfully");
+        
+        await SeedData.InitializeAsync(db);
+        logger.LogInformation("Seed data loaded successfully");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error during database initialization");
+        throw;
+    }
 }
 
 // Middleware
@@ -90,7 +102,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Remove HTTPS redirection for Railway - Railway handles HTTPS at proxy level
+// Remove HTTPS redirection for Railway
 // app.UseHttpsRedirection();
 
 app.UseStaticFiles();
@@ -115,7 +127,7 @@ app.MapGet("/health", () => Results.Ok(new
     version = "2.0.0"
 }));
 
-// Railway sets PORT environment variable, default to 8080
+// Railway sets PORT environment variable
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Urls.Clear();
 app.Urls.Add($"http://0.0.0.0:{port}");
