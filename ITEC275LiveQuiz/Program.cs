@@ -26,7 +26,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(2);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Changed for Railway
 });
 
 // Caching
@@ -90,7 +90,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Remove HTTPS redirection for Railway - Railway handles HTTPS at proxy level
+// app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -113,7 +115,9 @@ app.MapGet("/health", () => Results.Ok(new
     version = "2.0.0"
 }));
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+// Railway sets PORT environment variable, default to 8080
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Clear();
 app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Logger.LogInformation("?? LiveQuiz application started successfully!");
