@@ -1,7 +1,8 @@
 [build]
 builder = "NIXPACKS"
+buildCommand = "cd ITEC275LiveQuiz && dotnet restore && dotnet publish -c Release -o ../out"
 
 [deploy]
-startCommand = "dotnet ITEC275LiveQuiz.dll"
-healthcheckPath = "/health"
+startCommand = "dotnet out/ITEC275LiveQuiz.dll"
+healthcheckPath = "/"
 restartPolicyType = "ON_FAILURE"
