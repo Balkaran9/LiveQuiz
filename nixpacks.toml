@@ -1,10 +1,10 @@
 [phases.setup]
-nixPkgs = ['dotnet-sdk_10']
+nixPkgs = ['dotnet-sdk_8']
 
 [phases.build]
 cmds = [
   'dotnet --version',
-  'dotnet publish ITEC275LiveQuiz/ITEC275LiveQuiz.csproj -c Release -o out --framework net10.0'
+  'dotnet publish ITEC275LiveQuiz/ITEC275LiveQuiz.csproj -c Release -o out'
 ]
 
 [start]
