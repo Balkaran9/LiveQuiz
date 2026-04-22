@@ -1,8 +1,5 @@
-[build]
-builder = "NIXPACKS"
-
 [deploy]
-startCommand = "cd out && ./ITEC275LiveQuiz"
+startCommand = "dotnet ITEC275LiveQuiz.dll"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
