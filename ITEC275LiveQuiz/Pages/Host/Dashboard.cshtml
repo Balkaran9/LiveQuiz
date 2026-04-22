@@ -1,78 +1,145 @@
 @page
 @model ITEC275LiveQuiz.Pages.Host.DashboardModel
 @{
-    ViewData["Title"] = "Host Dashboard";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="container py-4">
-    <h1 class="mb-4 fw-bold">Host Dashboard</h1>
-    <div class="row g-4">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Quick Actions</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <a asp-page="/Quizzes/Create" class="btn btn-primary w-100 mb-2">Create New Quiz</a>
-                            <span class="text-muted small">Start building a new quiz from scratch</span>
-                        </li>
-                        <li class="mb-2">
-                            <a asp-page="/Quizzes/Index" class="btn btn-outline-primary w-100 mb-2">My Quizzes</a>
-                            <span class="text-muted small">View and manage all your quizzes</span>
-                        </li>
-                        <li class="mb-2">
-                            <a asp-page="/Host/GameHistory" class="btn btn-outline-secondary w-100 mb-2">Game History</a>
-                            <span class="text-muted small">Review past games and results</span>
-                        </li>
-                        <li>
-                            <a asp-page="/Quizzes/Public" class="btn btn-outline-info w-100">Browse Public Quizzes</a>
-                            <span class="text-muted small">Find and clone community quizzes</span>
-                        </li>
-                    </ul>
-                </div>
+<div class="mb-4">
+    <h1 class="display-5 fw-bold">Host Dashboard</h1>
+    <p class="lead text-muted">Welcome back, @HttpContext.Session.GetString("Username")!</p>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 text-primary mb-2">@Model.TotalQuizzes</div>
+                <h6 class="card-subtitle text-muted">Total Quizzes</h6>
             </div>
         </div>
-        <div class="col-md-6 col-lg-8">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Game History</h5>
-                    @if (Model.PastGames == null || !Model.PastGames.Any())
-                    {
-                        <div class="alert alert-info mb-0">
-                            <strong>No games yet</strong><br />
-                            Start hosting quizzes to see your game history here!
-                        </div>
-                    }
-                    else
-                    {
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Quiz</th>
-                                    <th>Date</th>
-                                    <th>Players</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            @foreach (var game in Model.PastGames)
-                            {
-                                <tr>
-                                    <td>@game.Quiz?.Title</td>
-                                    <td>@game.StartedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</td>
-                                    <td>@game.Participants.Count</td>
-                                    <td>@game.Status</td>
-                                    <td>
-                                        <a asp-page="/Host/Leaderboard" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-primary">View</a>
-                                    </td>
-                                </tr>
-                            }
-                            </tbody>
-                        </table>
-                    }
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 text-success mb-2">@Model.TotalGames</div>
+                <h6 class="card-subtitle text-muted">Games Hosted</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 text-info mb-2">@Model.TotalParticipants</div>
+                <h6 class="card-subtitle text-muted">Total Participants</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-4 text-warning mb-2">@Model.ActiveGames</div>
+                <h6 class="card-subtitle text-muted">Active Games</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-page="/Quizzes/Create" class="btn btn-success btn-lg">
+                        Create New Quiz
+                    </a>
+                    <a asp-page="/Quizzes/Index" class="btn btn-primary btn-lg">
+                        My Quizzes
+                    </a>
+                    <a asp-page="/Quizzes/Public" class="btn btn-outline-primary btn-lg">
+                        Browse Public Quizzes
+                    </a>
+                    <a asp-page="GameHistory" class="btn btn-outline-secondary btn-lg">
+                        Game History
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@if (Model.RecentGames.Any())
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Recent Games</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Quiz</th>
+                        <th>Status</th>
+                        <th>Participants</th>
+                        <th>Started</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var game in Model.RecentGames)
+                    {
+                        <tr>
+                            <td>@game.QuizTitle</td>
+                            <td>
+                                @if (game.Status == "Ended")
+                                {
+                                    <span class="badge bg-secondary">Ended</span>
+                                }
+                                else if (game.Status == "InProgress")
+                                {
+                                    <span class="badge bg-success">In Progress</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary">Lobby</span>
+                                }
+                            </td>
+                            <td>@game.ParticipantCount</td>
+                            <td>@game.StartedAt.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")</td>
+                            <td>
+                                @if (game.Status == "Ended")
+                                {
+                                    <a asp-page="Leaderboard" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-primary">View Results</a>
+                                }
+                                else
+                                {
+                                    <a asp-page="Lobby" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-primary">Resume</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <h5>Get Started!</h5>
+        <p class="mb-0">You haven't hosted any games yet. Create a quiz and start your first live game!</p>
+    </div>
+}
+
+@if (!Model.RecentGames.Any() && Model.TotalQuizzes == 0)
+{
+    <div class="card shadow-sm border-primary">
+        <div class="card-body text-center py-5">
+            <h3>Welcome to LiveQuiz!</h3>
+            <p class="lead text-muted mb-4">Start by creating your first quiz</p>
+            <a asp-page="/Quizzes/Create" class="btn btn-primary btn-lg">Create Your First Quiz</a>
+        </div>
+    </div>
+}

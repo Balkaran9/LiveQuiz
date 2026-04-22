@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ['dotnet-sdk_8']
+
+[phases.build]
+cmds = ['dotnet publish ITEC275LiveQuiz/ITEC275LiveQuiz.csproj -c Release -o out']
+
+[start]
+cmd = 'cd out && ./ITEC275LiveQuiz'

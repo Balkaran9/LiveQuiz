@@ -2,18 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>@ViewData["Title"] - LiveQuiz</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ITEC275LiveQuiz.styles.css" asp-append-version="true" />
-    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
-    <link rel="manifest" href="~/manifest.json" />
-    <meta name="theme-color" content="#46178f" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="description" content="Real-time quiz platform - Host live quizzes and compete with friends!" />
 </head>
 <body>
     <header>
@@ -81,12 +78,6 @@
     <footer class="border-top footer py-3 mt-4">
         <div class="container text-center">
             <span>&copy; 2025 LiveQuiz &mdash; ITEC275 Final Project</span>
-            <span class="mx-2">|</span>
-            <a asp-page="/Help" class="text-warning">Help</a>
-            <span class="mx-2">|</span>
-            <a asp-page="/Privacy">Privacy</a>
-            <span class="mx-2">|</span>
-            <a asp-page="/ApiDocs">API Docs</a>
         </div>
     </footer>
 

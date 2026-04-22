@@ -28,36 +28,70 @@ public class RegisterModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPa
             return Page();
         }
 
-        var username = Input.Username.Trim();
-        var exists = await dbContext.Users.AnyAsync(u => u.Username == username);
+        var username = Input.Username?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            ModelState.AddModelError("Input.Username", "Username is required.");
+            return Page();
+        }
+
+        var exists = await dbContext.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.Username == username);
+        
         if (exists)
         {
             ModelState.AddModelError(string.Empty, "That username is already taken.");
             return Page();
         }
 
+        var fullName = Input.FullName?.Trim();
+        var email = Input.Email?.Trim();
+
         var user = new User
         {
             Username = username,
-            Email = Input.Email?.Trim(),
-            FullName = Input.FullName?.Trim() ?? string.Empty,
+            Email = string.IsNullOrWhiteSpace(email) ? null : email,
+            FullName = string.IsNullOrWhiteSpace(fullName) ? null : fullName,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(Input.Password),
             CreatedAt = DateTime.UtcNow
         };
 
         dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            var errorMessage = "An error occurred while creating your account. ";
+            if (ex.InnerException?.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                errorMessage += "That username is already taken.";
+            }
+            else
+            {
+                errorMessage += "Please try again or contact support.";
+            }
+            ModelState.AddModelError(string.Empty, errorMessage);
+            return Page();
+        }
 
         HttpContext.Session.SetInt32("UserId", user.UserId);
         HttpContext.Session.SetString("Username", user.Username);
+        if (!string.IsNullOrEmpty(user.FullName))
+        {
+            HttpContext.Session.SetString("FullName", user.FullName);
+        }
+        
         return RedirectToPage("/Host/Dashboard");
     }
 
     public class InputModel
     {
-        [Required]
         [StringLength(100)]
-        public string FullName { get; set; } = string.Empty;
+        [Display(Name = "Full Name")]
+        public string? FullName { get; set; }
 
         [Required]
         [StringLength(50)]

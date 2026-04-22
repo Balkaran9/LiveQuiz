@@ -11,8 +11,7 @@
 else
 {
     <div class="text-center mb-5">
-        <div class="display-1">??</div>
-        <h1 class="fw-bold mt-2">Game Over!</h1>
+        <h1 class="fw-bold mt-2 display-4">Game Over!</h1>
         <p class="lead text-muted">@Model.Game.Quiz?.Title</p>
         <p class="text-muted">Ended at @Model.Game.EndedAt?.ToLocalTime().ToString("MMMM d, yyyy h:mm tt")</p>
     </div>
@@ -23,7 +22,7 @@ else
     }
     else
     {
-        <h3 class="text-center mb-4">?? Final Standings</h3>
+        <h3 class="text-center mb-4">Final Standings</h3>
         <div class="card shadow-sm">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
@@ -31,8 +30,8 @@ else
                         <th style="width:60px">Rank</th>
                         <th>Nickname</th>
                         <th class="text-center">Score</th>
-                        <th class="text-center">? Correct</th>
-                        <th class="text-center">? Wrong</th>
+                        <th class="text-center">Correct</th>
+                        <th class="text-center">Wrong</th>
                         <th class="text-center">Avg Time</th>
                     </tr>
                 </thead>
@@ -42,7 +41,7 @@ else
                     {
                         <tr class="@(rank == 1 ? "rank-1" : rank == 2 ? "rank-2" : rank == 3 ? "rank-3" : "")">
                             <td class="fw-bold fs-5">
-                                @(rank == 1 ? "??" : rank == 2 ? "??" : rank == 3 ? "??" : $"#{rank}")
+                                @(rank == 1 ? "1st" : rank == 2 ? "2nd" : rank == 3 ? "3rd" : $"#{rank}")
                             </td>
                             <td class="fw-semibold">@e.Nickname</td>
                             <td class="text-center fw-bold">@e.Score</td>
@@ -57,9 +56,7 @@ else
         </div>
     }
 
-    <div class="text-center mb-5">
-        <a asp-page="Analytics" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-info me-2">?? Advanced Analytics</a>
-        <a asp-page-handler="Export" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-success">?? Export CSV</a>
-        <a asp-page="/Quizzes/Index" class="btn btn-primary btn-lg">?? My Quizzes</a>
+    <div class="text-center mt-5">
+        <a asp-page="/Quizzes/Index" class="btn btn-primary btn-lg">My Quizzes</a>
     </div>
 }

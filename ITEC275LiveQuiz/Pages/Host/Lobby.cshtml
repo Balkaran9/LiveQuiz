@@ -4,6 +4,8 @@
     ViewData["Title"] = "Host Lobby";
 }
 
+<meta http-equiv="refresh" content="5">
+
 @if (Model.Game is null)
 {
     <div class="alert alert-danger">Game not found.</div>
@@ -12,7 +14,7 @@ else
 {
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="fw-bold">🎮 @Model.Game.Quiz?.Title</h1>
+            <h1 class="fw-bold">@Model.Game.Quiz?.Title</h1>
             <p class="text-muted mb-2">Share this code with players:</p>
             <div class="join-code-badge mb-3">@Model.Game.JoinCode</div>
             <p class="text-muted">
@@ -23,143 +25,41 @@ else
         <div class="col-md-4 d-flex flex-column align-items-end gap-2">
             @if (Model.OpenLiveQuestionId.HasValue)
             {
-                <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-warning w-100">⚡ View Current Question</a>
+                <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-warning w-100">View Current Question</a>
             }
             else
             {
-                <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-success w-100">▶ Open Next Question</a>
+                <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-success w-100">Open Next Question</a>
             }
-            <a asp-page="Leaderboard" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-primary w-100">🏆 Leaderboard</a>
-            <a asp-page="EndGame" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-danger w-100">⏹ End Game</a>
+            <a asp-page="Leaderboard" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-primary w-100">Leaderboard</a>
+            <a asp-page="EndGame" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-danger w-100">End Game</a>
         </div>
     </div>
 
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>👥 Players Joined</strong>
-            <span class="badge bg-primary fs-6" id="participantCount">@Model.Participants.Count</span>
+            <strong>Players Joined</strong>
+            <span class="badge bg-primary fs-6">@Model.Participants.Count</span>
         </div>
         @if (!Model.Participants.Any())
         {
-            <div class="card-body text-center text-muted py-4" id="waitingMessage">
+            <div class="card-body text-center text-muted py-4">
                 <div class="spinner-border spinner-border-sm me-2" role="status"></div>
                 Waiting for players to join...
             </div>
         }
-        <ul class="list-group list-group-flush" id="participantList">
-            @foreach (var p in Model.Participants)
-            {
-                <li class="list-group-item participant-item">
-                    <span class="me-2">🙋</span>@p.Nickname
-                    <small class="text-muted ms-2">joined @p.JoinedAt.ToLocalTime().ToString("h:mm tt")</small>
-                </li>
-            }
-        </ul>
+        else
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (var p in Model.Participants)
+                {
+                    <li class="list-group-item">
+                        @p.Nickname
+                        <small class="text-muted ms-2">joined @p.JoinedAt.ToLocalTime().ToString("h:mm tt")</small>
+                    </li>
+                }
+            </ul>
+        }
     </div>
-    <div class="text-center mt-2">
-        <span class="badge bg-success" id="liveIndicator">🟢 Live Updates Active</span>
-    </div>
-}
-
-@section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-    <script>
-        const gameId = '@Model.Game?.LiveGameId';
-        
-        // Initialize SignalR connection
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/gameHub")
-            .withAutomaticReconnect()
-            .build();
-
-        // Handle participant joined event
-        connection.on("ParticipantJoined", function (nickname) {
-            console.log("New participant:", nickname);
-            
-            // Remove waiting message if exists
-            const waiting = document.getElementById('waitingMessage');
-            if (waiting) waiting.remove();
-            
-            // Add participant to list with animation
-            const list = document.getElementById('participantList');
-            const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-            const item = document.createElement('li');
-            item.className = 'list-group-item participant-item animate-in';
-            item.innerHTML = `<span class="me-2">🙋</span>${nickname} <small class="text-muted ms-2">joined ${now}</small>`;
-            list.appendChild(item);
-            
-            // Update count
-            const countBadge = document.getElementById('participantCount');
-            countBadge.textContent = parseInt(countBadge.textContent) + 1;
-            
-            // Play notification sound (optional)
-            playJoinSound();
-        });
-
-        // Start connection
-        connection.start()
-            .then(() => {
-                console.log("SignalR connected");
-                return connection.invoke("JoinGame", gameId);
-            })
-            .then(() => {
-                console.log("Joined game room:", gameId);
-                document.getElementById('liveIndicator').classList.add('pulse');
-            })
-            .catch(err => {
-                console.error("SignalR error:", err);
-                document.getElementById('liveIndicator').innerHTML = '🔴 Live Updates Failed';
-                document.getElementById('liveIndicator').classList.remove('bg-success');
-                document.getElementById('liveIndicator').classList.add('bg-danger');
-            });
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            connection.invoke("LeaveGame", gameId);
-            connection.stop();
-        });
-
-        function playJoinSound() {
-            // Simple beep using Web Audio API
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                gainNode.gain.value = 0.1;
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.1);
-            } catch (e) {
-                console.log("Audio not supported");
-            }
-        }
-    </script>
-    <style>
-        .animate-in {
-            animation: slideIn 0.5s ease-out;
-        }
-        @@keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        @@keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-    </style>
+    <p class="text-muted text-center mt-2"><small>Page auto-refreshes every 5 seconds</small></p>
 }

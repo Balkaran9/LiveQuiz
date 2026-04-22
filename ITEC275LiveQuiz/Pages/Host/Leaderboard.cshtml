@@ -12,20 +12,19 @@ else
 {
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1>?? Leaderboard</h1>
+            <h1>Leaderboard</h1>
             <p class="mb-0 text-muted">@Model.Game.Quiz?.Title</p>
         </div>
         <div class="d-flex gap-2">
-            <a asp-page-handler="Export" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-success">?? Export CSV</a>
-            <a asp-page="Lobby" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-secondary">? Lobby</a>
-            <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-success">? Next Question</a>
-            <a asp-page="EndGame" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-danger">? End Game</a>
+            <a asp-page="Lobby" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-secondary">Lobby</a>
+            <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-success">Next Question</a>
+            <a asp-page="EndGame" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-danger">End Game</a>
         </div>
     </div>
 
     @if (!Model.Entries.Any())
     {
-        <div class="alert alert-info">No responses yet — leaderboard will appear after the first question.</div>
+        <div class="alert alert-info">No responses yet - leaderboard will appear after the first question.</div>
     }
     else
     {
@@ -36,8 +35,8 @@ else
                         <th style="width:60px">Rank</th>
                         <th>Nickname</th>
                         <th class="text-center">Score</th>
-                        <th class="text-center">? Correct</th>
-                        <th class="text-center">? Wrong</th>
+                        <th class="text-center">Correct</th>
+                        <th class="text-center">Wrong</th>
                         <th class="text-center">Avg Time</th>
                     </tr>
                 </thead>
@@ -47,7 +46,7 @@ else
                     {
                         <tr class="@(rank == 1 ? "rank-1" : rank == 2 ? "rank-2" : rank == 3 ? "rank-3" : "")">
                             <td class="fw-bold fs-5">
-                                @(rank == 1 ? "??" : rank == 2 ? "??" : rank == 3 ? "??" : $"#{rank}")
+                                @(rank == 1 ? "1st" : rank == 2 ? "2nd" : rank == 3 ? "3rd" : $"#{rank}")
                             </td>
                             <td class="fw-semibold">@e.Nickname</td>
                             <td class="text-center fw-bold">@e.Score</td>

@@ -3,15 +3,10 @@ using ITEC275LiveQuiz.Data;
 using ITEC275LiveQuiz.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.SignalR;
-using ITEC275LiveQuiz.Hubs;
 
 namespace ITEC275LiveQuiz.Pages.Play;
 
-public class JoinModel(
-    AppDbContext dbContext, 
-    IHubContext<GameHub> hubContext,
-    ILogger<JoinModel> logger) : ITEC275LiveQuiz.Pages.AppPageModel
+public class JoinModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -31,8 +26,15 @@ public class JoinModel(
             return Page();
         }
 
-        var code = Input.JoinCode.Trim().ToUpperInvariant();
+        var code = Input.JoinCode?.Trim().ToUpperInvariant() ?? string.Empty;
+        if (string.IsNullOrEmpty(code))
+        {
+            ModelState.AddModelError(string.Empty, "Please enter a valid join code.");
+            return Page();
+        }
+
         var game = await dbContext.LiveGames
+            .AsNoTracking()
             .FirstOrDefaultAsync(g => g.JoinCode == code && (g.Status == "Lobby" || g.Status == "InProgress"));
 
         if (game is null)
@@ -41,8 +43,15 @@ public class JoinModel(
             return Page();
         }
 
-        var nickname = Input.Nickname.Trim();
+        var nickname = Input.Nickname?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(nickname))
+        {
+            ModelState.AddModelError(string.Empty, "Please enter a valid nickname.");
+            return Page();
+        }
+
         var nickTaken = await dbContext.LiveParticipants
+            .AsNoTracking()
             .AnyAsync(p => p.LiveGameId == game.LiveGameId && p.Nickname == nickname);
 
         if (nickTaken)
@@ -61,22 +70,7 @@ public class JoinModel(
         dbContext.LiveParticipants.Add(participant);
         await dbContext.SaveChangesAsync();
 
-        // Notify host via SignalR
-        try
-        {
-            await hubContext.Clients.Group($"game_{game.LiveGameId}")
-                .SendAsync("ParticipantJoined", nickname);
-            logger.LogInformation("SignalR notification sent for {Nickname} joining game {GameId}", 
-                nickname, game.LiveGameId);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to send SignalR notification");
-        }
-
         SetParticipantId(game.LiveGameId, participant.LiveParticipantId);
-
-        logger.LogInformation("Participant {Nickname} joined game {GameId}", nickname, game.LiveGameId);
 
         return RedirectToPage("Game", new { gameId = game.LiveGameId });
     }

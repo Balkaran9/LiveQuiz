@@ -20,17 +20,20 @@ public class StatsModel(AppDbContext dbContext) : PageModel
     public async Task<IActionResult> OnGetAsync(int gameId, int participantId)
     {
         Game = await dbContext.LiveGames
+            .AsNoTracking()
             .Include(g => g.Quiz)
             .FirstOrDefaultAsync(g => g.LiveGameId == gameId);
 
         if (Game is null) return NotFound();
 
         Participant = await dbContext.LiveParticipants
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.LiveParticipantId == participantId && p.LiveGameId == gameId);
 
         if (Participant is null) return NotFound();
 
         QuestionStats = await dbContext.LiveResponses
+            .AsNoTracking()
             .Where(r => r.LiveParticipantId == participantId)
             .Include(r => r.LiveQuestion)
             .ThenInclude(lq => lq!.Question)
@@ -41,8 +44,7 @@ public class StatsModel(AppDbContext dbContext) : PageModel
                 QuestionText = r.LiveQuestion!.Question!.QuestionText,
                 AnswerText = r.Answer!.AnswerText,
                 IsCorrect = r.IsCorrect,
-                TimeMs = r.TimeMs,
-                Points = r.PointsEarned
+                TimeMs = r.TimeMs
             })
             .ToListAsync();
 
@@ -51,12 +53,13 @@ public class StatsModel(AppDbContext dbContext) : PageModel
         AverageTime = QuestionStats.Any() ? QuestionStats.Average(q => q.TimeMs) / 1000.0 : 0;
 
         var allParticipants = await dbContext.LiveParticipants
+            .AsNoTracking()
             .Where(p => p.LiveGameId == gameId)
             .Select(p => new
             {
                 p.LiveParticipantId,
-                Score = p.Responses.Sum(r => r.PointsEarned),
-                TotalTime = p.Responses.Sum(r => r.TimeMs)
+                Score = p.Responses.Count(r => r.IsCorrect),
+                TotalTime = p.Responses.Any() ? p.Responses.Sum(r => r.TimeMs) : 0
             })
             .ToListAsync();
 
@@ -80,6 +83,5 @@ public class StatsModel(AppDbContext dbContext) : PageModel
         public string AnswerText { get; set; } = string.Empty;
         public bool IsCorrect { get; set; }
         public int TimeMs { get; set; }
-        public int Points { get; set; }
     }
 }

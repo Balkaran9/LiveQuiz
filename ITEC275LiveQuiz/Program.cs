@@ -5,134 +5,92 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database configuration - Use SQLite for Railway/Production, SQL Server for local dev
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddRazorPages();
 
-// Check if we're on Railway or other cloud platform (no SQL Server available)
-if (string.IsNullOrEmpty(connectionString) || builder.Environment.IsProduction())
+// Database configuration with Railway PostgreSQL support
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    // Use SQLite for cloud deployment
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite("Data Source=livequiz.db"));
-}
-else
-{
-    // Use SQL Server LocalDB for local development
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(connectionString));
-}
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        // Railway PostgreSQL connection
+        // Railway format: postgresql://user:password@host:port/database
+        var uri = new Uri(databaseUrl);
+        var npgsqlConnectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.Trim('/')};Username={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};SSL Mode=Require;Trust Server Certificate=true";
+        options.UseNpgsql(npgsqlConnectionString);
+    }
+    else
+    {
+        // Local SQL Server
+        options.UseSqlServer(connectionString);
+    }
+    
+    options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+    options.EnableDetailedErrors(builder.Environment.IsDevelopment());
+}, ServiceLifetime.Scoped);
 
-// Session
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromHours(2);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-});
-
-// Caching
-builder.Services.AddMemoryCache();
-
-// Services
 builder.Services.AddScoped<JoinCodeService>();
 builder.Services.AddScoped<LeaderboardService>();
 builder.Services.AddScoped<CacheService>();
-
-// SignalR for real-time updates
-builder.Services.AddSignalR();
-
-// Controllers for API
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-    });
-
-// CORS for API access
-builder.Services.AddCors(options =>
+builder.Services.AddMemoryCache();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
 {
-    options.AddPolicy("ApiPolicy", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    options.IdleTimeout = TimeSpan.FromHours(4);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = builder.Environment.IsProduction() 
+        ? CookieSecurePolicy.Always 
+        : CookieSecurePolicy.SameAsRequest;
 });
-
-// Enhanced Logging
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-builder.Logging.SetMinimumLevel(LogLevel.Information);
-
-// Razor Pages
-builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// Database initialization
+// Initialize database
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    
     try
     {
-        logger.LogInformation("Initializing database...");
-        await db.Database.EnsureCreatedAsync();
-        logger.LogInformation("Database created successfully");
-        
+        if (Environment.GetEnvironmentVariable("DATABASE_URL") != null)
+        {
+            // Railway - use migrations or ensure created
+            await db.Database.EnsureCreatedAsync();
+        }
+        else
+        {
+            // Local development
+            await db.Database.EnsureCreatedAsync();
+        }
         await SeedData.InitializeAsync(db);
-        logger.LogInformation("Seed data loaded successfully");
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Error during database initialization");
-        throw;
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while initializing the database.");
     }
 }
 
-// Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
-// Remove HTTPS redirection for Railway
-// app.UseHttpsRedirection();
+// Railway needs HTTP, not HTTPS redirect
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseStaticFiles();
 app.UseRouting();
-
-// Enable CORS
-app.UseCors("ApiPolicy");
-
 app.UseSession();
 app.UseAuthorization();
 
-// Map endpoints
-app.MapRazorPages();
-app.MapControllers();
-app.MapHub<ITEC275LiveQuiz.Hubs.GameHub>("/gameHub");
-
-// Health check endpoint
-app.MapGet("/health", () => Results.Ok(new 
-{ 
-    status = "healthy", 
-    timestamp = DateTime.UtcNow,
-    version = "2.0.0"
-}));
-
-// Railway sets PORT environment variable
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Clear();
-app.Urls.Add($"http://0.0.0.0:{port}");
-
-app.Logger.LogInformation("?? LiveQuiz application started successfully!");
-app.Logger.LogInformation("?? SignalR enabled at /gameHub");
-app.Logger.LogInformation("?? API available at /api/*");
-app.Logger.LogInformation("?? Listening on port {Port}", port);
+app.MapStaticAssets();
+app.MapRazorPages()
+   .WithStaticAssets();
 
 app.Run();

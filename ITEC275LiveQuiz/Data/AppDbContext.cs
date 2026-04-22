@@ -22,9 +22,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasIndex(u => u.Username)
             .IsUnique();
 
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique(false);
+
         modelBuilder.Entity<LiveGame>()
             .HasIndex(g => g.JoinCode)
             .IsUnique();
+
+        modelBuilder.Entity<LiveGame>()
+            .HasIndex(g => new { g.Status, g.HostUserId });
+
+        modelBuilder.Entity<LiveParticipant>()
+            .HasIndex(p => new { p.LiveGameId, p.Nickname });
+
+        modelBuilder.Entity<LiveQuestion>()
+            .HasIndex(lq => new { lq.LiveGameId, lq.ClosedAt });
+
+        modelBuilder.Entity<LiveResponse>()
+            .HasIndex(lr => new { lr.LiveQuestionId, lr.LiveParticipantId });
 
         modelBuilder.Entity<Quiz>()
             .HasOne(q => q.OwnerUser)

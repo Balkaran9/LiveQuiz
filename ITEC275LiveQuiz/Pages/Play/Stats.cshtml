@@ -11,9 +11,6 @@
 else
 {
     <div class="text-center mb-5">
-        <div class="display-3">
-            @(Model.Rank == 1 ? "??" : Model.Rank == 2 ? "??" : Model.Rank == 3 ? "??" : "??")
-        </div>
         <h1 class="fw-bold mt-2">Your Performance</h1>
         <p class="lead text-muted">@Model.Game.Quiz?.Title</p>
         <p class="text-muted">Playing as <span class="badge bg-primary">@Model.Participant.Nickname</span></p>
@@ -25,14 +22,6 @@ else
                 <div class="card-body">
                     <div class="display-5 fw-bold text-primary">@Model.Rank / @Model.TotalParticipants</div>
                     <div class="text-muted">Your Rank</div>
-                    @if (Model.Rank == 1)
-                    {
-                        <div class="mt-2"><span class="badge bg-warning text-dark fs-6">?? Champion!</span></div>
-                    }
-                    else if (Model.Rank <= 3)
-                    {
-                        <div class="mt-2"><span class="badge bg-info fs-6">?? Podium Finish!</span></div>
-                    }
                 </div>
             </div>
         </div>
@@ -41,10 +30,6 @@ else
                 <div class="card-body">
                     <div class="display-5 fw-bold text-success">@Model.TotalCorrect</div>
                     <div class="text-muted">Correct Answers</div>
-                    @if (Model.TotalCorrect == Model.TotalQuestions && Model.TotalQuestions > 0)
-                    {
-                        <div class="mt-2"><span class="badge bg-success fs-6">?? Perfect Score!</span></div>
-                    }
                 </div>
             </div>
         </div>
@@ -53,13 +38,6 @@ else
                 <div class="card-body">
                     <div class="display-5 fw-bold text-warning">@Math.Round((Model.TotalCorrect / (double)Math.Max(1, Model.TotalQuestions)) * 100)%</div>
                     <div class="text-muted">Accuracy</div>
-                    @{
-                        var accuracy = (Model.TotalCorrect / (double)Math.Max(1, Model.TotalQuestions)) * 100;
-                    }
-                    @if (accuracy >= 80)
-                    {
-                        <div class="mt-2"><span class="badge bg-success fs-6">? Excellent!</span></div>
-                    }
                 </div>
             </div>
         </div>
@@ -68,10 +46,6 @@ else
                 <div class="card-body">
                     <div class="display-5 fw-bold">@Math.Round(Model.AverageTime, 1)s</div>
                     <div class="text-muted">Avg Time</div>
-                    @if (Model.AverageTime < 5000)
-                    {
-                        <div class="mt-2"><span class="badge bg-danger fs-6">? Lightning Fast!</span></div>
-                    }
                 </div>
             </div>
         </div>
@@ -87,7 +61,6 @@ else
                     <th>Your Answer</th>
                     <th>Result</th>
                     <th>Time</th>
-                    <th>Points</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,15 +74,14 @@ else
                         <td>
                             @if (q.IsCorrect)
                             {
-                                <span class="badge bg-success">? Correct</span>
+                                <span class="badge bg-success">Correct</span>
                             }
                             else
                             {
-                                <span class="badge bg-danger">? Wrong</span>
+                                <span class="badge bg-danger">Wrong</span>
                             }
                         </td>
                         <td>@Math.Round(q.TimeMs / 1000.0, 1)s</td>
-                        <td class="fw-bold text-primary">@q.Points</td>
                     </tr>
                     qNum++;
                 }

@@ -28,6 +28,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
     public async Task<IActionResult> OnGetAsync(int gameId)
     {
         Game = await dbContext.LiveGames
+            .AsNoTracking()
             .Include(g => g.Quiz)
             .FirstOrDefaultAsync(g => g.LiveGameId == gameId);
 
@@ -40,6 +41,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         }
 
         Participant = await dbContext.LiveParticipants
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.LiveParticipantId == participantId.Value && p.LiveGameId == gameId);
 
         if (Participant is null)
@@ -53,26 +55,21 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         if (!GameEnded)
         {
             CurrentQuestion = await dbContext.LiveQuestions
+                .AsNoTracking()
                 .Include(lq => lq.Question)
                 .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
 
             if (CurrentQuestion is not null)
             {
                 Question = CurrentQuestion.Question;
-                
-                var answersQuery = dbContext.Answers.Where(a => a.QuestionId == CurrentQuestion.QuestionId);
-                
-                if (Question!.ShuffleAnswers)
-                {
-                    var allAnswers = await answersQuery.ToListAsync();
-                    Answers = allAnswers.OrderBy(_ => Random.Shared.Next()).ToList();
-                }
-                else
-                {
-                    Answers = await answersQuery.OrderBy(a => a.AnswerId).ToListAsync();
-                }
+                Answers = await dbContext.Answers
+                    .AsNoTracking()
+                    .Where(a => a.QuestionId == CurrentQuestion.QuestionId)
+                    .OrderBy(a => a.AnswerId)
+                    .ToListAsync();
 
                 AlreadyAnswered = await dbContext.LiveResponses
+                    .AsNoTracking()
                     .AnyAsync(r => r.LiveQuestionId == CurrentQuestion.LiveQuestionId
                                && r.LiveParticipantId == Participant.LiveParticipantId);
             }
@@ -87,33 +84,26 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         if (!participantId.HasValue) return RedirectToPage("Join");
 
         var liveQuestion = await dbContext.LiveQuestions
+            .AsNoTracking()
             .Include(lq => lq.Question)
             .FirstOrDefaultAsync(lq => lq.LiveGameId == GameId && lq.ClosedAt == null);
 
         if (liveQuestion is null) return RedirectToPage("Game", new { gameId = GameId });
 
         var alreadyAnswered = await dbContext.LiveResponses
+            .AsNoTracking()
             .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
                        && r.LiveParticipantId == participantId.Value);
 
         if (!alreadyAnswered)
         {
             var answer = await dbContext.Answers
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.AnswerId == SelectedAnswerId
                                        && a.QuestionId == liveQuestion.QuestionId);
 
             if (answer is not null)
             {
-                int points = 0;
-                if (answer.IsCorrect)
-                {
-                    // Base points: 1000
-                    // Speed bonus: up to 500 points (faster = more points)
-                    var timeLimit = liveQuestion.Question!.TimeLimitSeconds * 1000;
-                    var speedBonus = (int)Math.Max(0, 500 * (1 - (ElapsedMs / (double)timeLimit)));
-                    points = 1000 + speedBonus;
-                }
-
                 var response = new LiveResponse
                 {
                     LiveQuestionId = liveQuestion.LiveQuestionId,
@@ -121,8 +111,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                     AnswerId = answer.AnswerId,
                     AnsweredAt = DateTime.UtcNow,
                     IsCorrect = answer.IsCorrect,
-                    TimeMs = Math.Max(0, ElapsedMs),
-                    PointsEarned = points
+                    TimeMs = Math.Max(0, ElapsedMs)
                 };
 
                 dbContext.LiveResponses.Add(response);

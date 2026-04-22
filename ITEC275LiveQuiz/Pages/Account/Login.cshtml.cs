@@ -21,8 +21,17 @@ public class LoginModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageM
             return Page();
         }
 
-        var username = Input.Username.Trim();
-        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+        var username = Input.Username?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            ModelState.AddModelError(string.Empty, "Invalid username or password.");
+            return Page();
+        }
+
+        var user = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Username == username);
+
         if (user is null || !BCrypt.Net.BCrypt.Verify(Input.Password, user.PasswordHash))
         {
             ModelState.AddModelError(string.Empty, "Invalid username or password.");
@@ -31,7 +40,12 @@ public class LoginModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageM
 
         HttpContext.Session.SetInt32("UserId", user.UserId);
         HttpContext.Session.SetString("Username", user.Username);
-        return RedirectToPage("/Host/Dashboard");
+        if (!string.IsNullOrEmpty(user.FullName))
+        {
+            HttpContext.Session.SetString("FullName", user.FullName);
+        }
+
+        return RedirectToPage("/Quizzes/Index");
     }
 
     public class InputModel

@@ -7,109 +7,35 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1>Public Quizzes</h1>
-        <p class="text-muted mb-0">Browse @Model.Quizzes.Count quiz@(Model.Quizzes.Count != 1 ? "es" : "") shared by the community</p>
+        <p class="text-muted mb-0">Browse quizzes shared by the community</p>
     </div>
 </div>
 
-<!-- Advanced Search & Filters -->
-<form method="get" class="mb-4">
-    <div class="row g-3">
-        <div class="col-md-5">
-            <input type="text" name="SearchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search by title or author..." />
-        </div>
-        <div class="col-md-3">
-            <select name="CategoryFilter" class="form-select" onchange="this.form.submit()">
-                <option value="">All Categories</option>
-                @foreach (var category in Model.AvailableCategories)
-                {
-                    <option value="@category" selected="@(Model.CategoryFilter == category)">@category</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select name="SortBy" class="form-select" onchange="this.form.submit()">
-                <option value="recent" selected="@(Model.SortBy == "recent")">Most Recent</option>
-                <option value="popular" selected="@(Model.SortBy == "popular")">Most Popular</option>
-                <option value="questions" selected="@(Model.SortBy == "questions")">Most Questions</option>
-                <option value="title" selected="@(Model.SortBy == "title")">Alphabetical</option>
-            </select>
-        </div>
-        <div class="col-md-1">
-            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || !string.IsNullOrWhiteSpace(Model.CategoryFilter))
-            {
-                <a asp-page="Public" class="btn btn-outline-danger w-100" title="Clear filters">Clear</a>
-            }
-        </div>
-    </div>
-</form>
-
 @if (!Model.Quizzes.Any())
 {
-    <div class="alert alert-info">
-        <strong>No quizzes found!</strong> 
-        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || !string.IsNullOrWhiteSpace(Model.CategoryFilter))
-        {
-            <text>Try adjusting your filters or <a asp-page="Public">view all quizzes</a>.</text>
-        }
-        else
-        {
-            <text>No public quizzes are available yet. Be the first to create and share one!</text>
-        }
-    </div>
+    <div class="alert alert-info">No public quizzes are available yet.</div>
 }
 else
 {
     <div class="row g-4">
         @foreach (var quiz in Model.Quizzes)
         {
-            <div class="col-lg-4 col-md-6">
+            <div class="col-md-4">
                 <div class="card h-100 shadow-sm quiz-card">
                     <div class="card-body">
-                        <h5 class="card-title fw-bold">@quiz.Title</h5>
-                        @if (!string.IsNullOrWhiteSpace(quiz.Category))
-                        {
-                            <span class="badge bg-info mb-2">@quiz.Category</span>
-                        }
-                        <div class="mt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge bg-secondary">@quiz.Questions!.Count question@(quiz.Questions.Count != 1 ? "s" : "")</span>
-                                @if (quiz.LiveGames?.Any() == true)
-                                {
-                                    <span class="badge bg-success" title="Times played">@quiz.LiveGames.Count play@(quiz.LiveGames.Count != 1 ? "s" : "")</span>
-                                }
-                            </div>
-                            <small class="text-muted d-block">
-                                <strong>@quiz.OwnerUser?.Username</strong>
-                            </small>
-                            <small class="text-muted">
-                                @quiz.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")
-                            </small>
-                        </div>
+                        <h5 class="card-title">@quiz.Title</h5>
+                        <p class="card-text text-muted">
+                            <small>By <strong>@quiz.OwnerUser?.Username</strong></small><br />
+                            <small>@quiz.Questions.Count question(s)</small><br />
+                            <small>Created @quiz.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</small>
+                        </p>
                     </div>
-                    <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                    <div class="card-footer bg-transparent">
                         <span class="badge bg-success">Public</span>
-                        <a asp-page="Clone" asp-route-id="@quiz.QuizId" class="btn btn-sm btn-primary">
-                            Clone
-                        </a>
+                        <a asp-page="Clone" asp-route-id="@quiz.QuizId" class="btn btn-sm btn-outline-primary float-end">Clone to My Quizzes</a>
                     </div>
                 </div>
             </div>
         }
     </div>
 }
-
-<style>
-    .quiz-card {
-        transition: all 0.3s ease;
-        border: 1px solid rgba(0,0,0,.125);
-    }
-    .quiz-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,.2) !important;
-        border-color: var(--bs-primary);
-    }
-    .card-title {
-        color: #46178f;
-        min-height: 2.5rem;
-    }
-</style>

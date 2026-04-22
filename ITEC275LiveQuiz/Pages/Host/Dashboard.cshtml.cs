@@ -12,25 +12,33 @@ public class DashboardModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppP
     public int TotalParticipants { get; set; }
     public int ActiveGames { get; set; }
     public List<RecentGame> RecentGames { get; set; } = [];
-    public List<LiveGame> PastGames { get; set; } = [];
 
     public async Task<IActionResult> OnGetAsync()
     {
         var userId = GetCurrentUserId();
         if (!userId.HasValue) return RedirectToLogin();
 
-        TotalQuizzes = await dbContext.Quizzes.CountAsync(q => q.OwnerUserId == userId.Value);
-        TotalGames = await dbContext.LiveGames.CountAsync(g => g.HostUserId == userId.Value);
-        TotalParticipants = await dbContext.LiveGames
-            .Where(g => g.HostUserId == userId.Value)
-            .SelectMany(g => g.Participants)
+        var statsTask = dbContext.Quizzes
+            .AsNoTracking()
+            .Where(q => q.OwnerUserId == userId.Value)
             .CountAsync();
-        ActiveGames = await dbContext.LiveGames
-            .CountAsync(g => g.HostUserId == userId.Value && g.Status != "Ended");
+        
+        var gamesTask = dbContext.LiveGames
+            .AsNoTracking()
+            .Where(g => g.HostUserId == userId.Value)
+            .Select(g => new 
+            { 
+                g.LiveGameId, 
+                g.Status, 
+                ParticipantCount = g.Participants.Count 
+            })
+            .ToListAsync();
 
-        RecentGames = await dbContext.LiveGames
+        var recentGamesTask = dbContext.LiveGames
+            .AsNoTracking()
             .Where(g => g.HostUserId == userId.Value)
             .Include(g => g.Quiz)
+            .Include(g => g.Participants)
             .OrderByDescending(g => g.StartedAt)
             .Take(5)
             .Select(g => new RecentGame
@@ -43,11 +51,14 @@ public class DashboardModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppP
             })
             .ToListAsync();
 
-        PastGames = await dbContext.LiveGames
-            .Where(g => g.HostUserId == userId.Value)
-            .Include(g => g.Quiz)
-            .OrderByDescending(g => g.StartedAt)
-            .ToListAsync();
+        await Task.WhenAll(statsTask, gamesTask, recentGamesTask);
+
+        TotalQuizzes = await statsTask;
+        var games = await gamesTask;
+        TotalGames = games.Count;
+        TotalParticipants = games.Sum(g => g.ParticipantCount);
+        ActiveGames = games.Count(g => g.Status != "Ended");
+        RecentGames = await recentGamesTask;
 
         return Page();
     }

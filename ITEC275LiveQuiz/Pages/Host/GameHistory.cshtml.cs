@@ -15,6 +15,7 @@ public class GameHistoryModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.Ap
         if (!userId.HasValue) return RedirectToLogin();
 
         Games = await dbContext.LiveGames
+            .AsNoTracking()
             .Where(g => g.HostUserId == userId.Value)
             .Include(g => g.Quiz)
             .Include(g => g.Participants)
