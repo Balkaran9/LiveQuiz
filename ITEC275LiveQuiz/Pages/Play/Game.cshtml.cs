@@ -93,6 +93,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         {
             var game = await dbContext.LiveGames
                 .AsNoTracking()
+                .Include(g => g.Quiz)
                 .FirstOrDefaultAsync(g => g.LiveGameId == GameId);
 
             if (game is null || game.Status == "Ended")
@@ -112,7 +113,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                 .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
                            && r.LiveParticipantId == participantId.Value);
 
-            if (!alreadyAnswered)
+            if (!alreadyAnswered && SelectedAnswerId > 0)
             {
                 var answer = await dbContext.Answers
                     .AsNoTracking()
@@ -133,23 +134,26 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
                     dbContext.LiveResponses.Add(response);
                     await dbContext.SaveChangesAsync();
+                    alreadyAnswered = true;
                 }
             }
 
             Game = game;
             Participant = await dbContext.LiveParticipants
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.LiveParticipantId == participantId.Value);
+                .FirstOrDefaultAsync(p => p.LiveParticipantId == participantId.Value && p.LiveGameId == GameId);
             
             CurrentQuestion = liveQuestion;
             Question = liveQuestion.Question;
-            AlreadyAnswered = true;
+            Answers = new List<Answer>();
+            AlreadyAnswered = alreadyAnswered;
             GameEnded = false;
 
             return Page();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error in OnPostAsync: {ex.Message}");
             return RedirectToPage("Game", new { gameId = GameId });
         }
     }
