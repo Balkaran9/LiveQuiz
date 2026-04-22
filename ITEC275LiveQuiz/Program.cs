@@ -14,7 +14,6 @@ builder.Services.AddRazorPages();
 // Database configuration with Railway PostgreSQL support
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
     
     if (!string.IsNullOrEmpty(databaseUrl))
@@ -24,11 +23,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         var uri = new Uri(databaseUrl);
         var npgsqlConnectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.Trim('/')};Username={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};SSL Mode=Require;Trust Server Certificate=true";
         options.UseNpgsql(npgsqlConnectionString);
+        Console.WriteLine($"Using PostgreSQL: {uri.Host}");
     }
     else
     {
-        // Local SQL Server
-        options.UseSqlServer(connectionString);
+        // Local SQL Server - only use if DATABASE_URL is not set
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            options.UseSqlServer(connectionString);
+            Console.WriteLine("Using SQL Server LocalDB");
+        }
+        else
+        {
+            throw new InvalidOperationException("No database connection configured. DATABASE_URL or DefaultConnection must be set.");
+        }
     }
     
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
@@ -56,24 +65,21 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    
     try
     {
-        if (Environment.GetEnvironmentVariable("DATABASE_URL") != null)
-        {
-            // Railway - use migrations or ensure created
-            await db.Database.EnsureCreatedAsync();
-        }
-        else
-        {
-            // Local development
-            await db.Database.EnsureCreatedAsync();
-        }
+        logger.LogInformation("Initializing database...");
+        await db.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database initialized successfully");
+        
         await SeedData.InitializeAsync(db);
+        logger.LogInformation("Seed data initialized successfully");
     }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while initializing the database.");
+        // Don't throw - let the app start even if database init fails
     }
 }
 
