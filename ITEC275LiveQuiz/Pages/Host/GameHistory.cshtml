@@ -5,15 +5,14 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>?? Game History</h1>
-    <a asp-page="/Quizzes/Index" class="btn btn-outline-primary">? My Quizzes</a>
+    <h1>Game History</h1>
+    <a asp-page="/Quizzes/Index" class="btn btn-outline-primary">My Quizzes</a>
 </div>
 
 @if (!Model.Games.Any())
 {
-    <div class="alert alert-info text-center">
-        <div class="display-4 mb-3">??</div>
-        <h5>No games yet</h5>
+    <div class="alert alert-info text-center py-5">
+        <h3 class="mb-3">No games yet</h3>
         <p class="mb-0">Start hosting quizzes to see your game history here!</p>
     </div>
 }
@@ -30,7 +29,7 @@ else
                     <th>Status</th>
                     <th>Participants</th>
                     <th>Questions</th>
-                    <th></th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -48,7 +47,7 @@ else
                             }
                             else
                             {
-                                <span class="text-muted">—</span>
+                                <span class="text-muted">-</span>
                             }
                         </td>
                         <td>
@@ -70,11 +69,11 @@ else
                         <td>
                             @if (game.Status == "Ended")
                             {
-                                <a asp-page="Leaderboard" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-primary">?? Results</a>
+                                <a asp-page="Leaderboard" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-primary">Results</a>
                             }
                             else
                             {
-                                <a asp-page="Lobby" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-success">? Resume</a>
+                                <a asp-page="Lobby" asp-route-gameId="@game.LiveGameId" class="btn btn-sm btn-outline-success">Resume</a>
                             }
                         </td>
                     </tr>
