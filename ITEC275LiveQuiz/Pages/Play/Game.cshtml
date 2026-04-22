@@ -59,8 +59,7 @@ else
                     <button type="submit"
                             class="btn answer-btn answer-btn-@(idx % 4) w-100"
                             name="SelectedAnswerId"
-                            value="@answer.AnswerId"
-                            onclick="this.disabled=true; this.innerHTML='<span class=spinner-border spinner-border-sm></span> Submitting...'; this.form.submit();">
+                            value="@answer.AnswerId">
                         @answer.AnswerText
                     </button>
                 </div>

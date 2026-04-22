@@ -91,15 +91,22 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"POST: Player {participantId} submitting answer {SelectedAnswerId}");
+            System.Diagnostics.Debug.WriteLine($"POST: Player {participantId} submitting answer {SelectedAnswerId} for game {gameId}");
             
             var game = await dbContext.LiveGames
                 .AsNoTracking()
                 .Include(g => g.Quiz)
                 .FirstOrDefaultAsync(g => g.LiveGameId == GameId);
 
-            if (game is null || game.Status == "Ended")
+            if (game is null)
             {
+                System.Diagnostics.Debug.WriteLine("POST: Game not found");
+                return RedirectToPage("Join");
+            }
+            
+            if (game.Status == "Ended")
+            {
+                System.Diagnostics.Debug.WriteLine("POST: Game has ended");
                 return RedirectToPage("Stats", new { gameId = GameId });
             }
 
@@ -143,22 +150,24 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                     dbContext.LiveResponses.Add(response);
                     await dbContext.SaveChangesAsync();
                     
-                    System.Diagnostics.Debug.WriteLine($"POST: Answer saved successfully! ResponseId will be generated");
-                    
-                    await Task.Delay(100);
+                    System.Diagnostics.Debug.WriteLine($"POST: Answer saved successfully!");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("POST: Answer not found in database");
+                    System.Diagnostics.Debug.WriteLine($"POST: Answer {SelectedAnswerId} not found for question {liveQuestion.QuestionId}");
                 }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("POST: Skipping save - already answered or no answer selected");
             }
 
             return RedirectToPage("Game", new { gameId = GameId });
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in OnPostAsync: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            System.Diagnostics.Debug.WriteLine($"POST ERROR: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"POST ERROR Stack: {ex.StackTrace}");
             return RedirectToPage("Game", new { gameId = GameId });
         }
     }
