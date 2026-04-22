@@ -87,21 +87,17 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         try
         {
             var liveQuestion = await dbContext.LiveQuestions
-                .AsNoTracking()
-                .Include(lq => lq.Question)
                 .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
 
             if (liveQuestion is null) return RedirectToPage("Game", new { gameId = gameId });
 
             var alreadyAnswered = await dbContext.LiveResponses
-                .AsNoTracking()
                 .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
                            && r.LiveParticipantId == participantId.Value);
 
             if (!alreadyAnswered && SelectedAnswerId > 0)
             {
                 var answer = await dbContext.Answers
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(a => a.AnswerId == SelectedAnswerId
                                            && a.QuestionId == liveQuestion.QuestionId);
 
@@ -119,6 +115,9 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
                     dbContext.LiveResponses.Add(response);
                     await dbContext.SaveChangesAsync();
+                    
+                    // Small delay to ensure database commit is complete
+                    await Task.Delay(100);
                 }
             }
 
@@ -126,7 +125,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}\n{ex.StackTrace}");
             return RedirectToPage("Game", new { gameId = gameId });
         }
     }
