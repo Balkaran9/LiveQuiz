@@ -91,6 +91,8 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
         try
         {
+            System.Diagnostics.Debug.WriteLine($"POST: Player {participantId} submitting answer {SelectedAnswerId}");
+            
             var game = await dbContext.LiveGames
                 .AsNoTracking()
                 .Include(g => g.Quiz)
@@ -106,12 +108,18 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                 .Include(lq => lq.Question)
                 .FirstOrDefaultAsync(lq => lq.LiveGameId == GameId && lq.ClosedAt == null);
 
-            if (liveQuestion is null) return RedirectToPage("Game", new { gameId = GameId });
+            if (liveQuestion is null)
+            {
+                System.Diagnostics.Debug.WriteLine("POST: No open question found");
+                return RedirectToPage("Game", new { gameId = GameId });
+            }
 
             var alreadyAnswered = await dbContext.LiveResponses
                 .AsNoTracking()
                 .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
                            && r.LiveParticipantId == participantId.Value);
+
+            System.Diagnostics.Debug.WriteLine($"POST: Already answered = {alreadyAnswered}, SelectedId = {SelectedAnswerId}");
 
             if (!alreadyAnswered && SelectedAnswerId > 0)
             {
@@ -134,6 +142,14 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
                     dbContext.LiveResponses.Add(response);
                     await dbContext.SaveChangesAsync();
+                    
+                    System.Diagnostics.Debug.WriteLine($"POST: Answer saved successfully! ResponseId will be generated");
+                    
+                    await Task.Delay(100);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("POST: Answer not found in database");
                 }
             }
 
@@ -142,6 +158,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error in OnPostAsync: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             return RedirectToPage("Game", new { gameId = GameId });
         }
     }
