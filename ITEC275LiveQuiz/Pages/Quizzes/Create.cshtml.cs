@@ -46,7 +46,12 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError(string.Empty, $"Unable to create quiz: {ex.Message}");
+            var errorMessage = ex.Message;
+            if (ex.InnerException != null)
+            {
+                errorMessage += $" Inner: {ex.InnerException.Message}";
+            }
+            ModelState.AddModelError(string.Empty, $"Unable to create quiz: {errorMessage}");
             return Page();
         }
     }
