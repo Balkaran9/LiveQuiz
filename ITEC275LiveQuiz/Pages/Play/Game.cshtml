@@ -49,8 +49,7 @@ else
         <h3>@Model.Question?.QuestionText</h3>
     </div>
 
-    <form method="post" id="answerForm">
-        <input type="hidden" asp-for="GameId" value="@Model.Game.LiveGameId" />
+    <form method="post" asp-page="/Play/Game" asp-route-gameId="@Model.Game.LiveGameId" id="answerForm">
         <input type="hidden" asp-for="ElapsedMs" id="elapsedMs" value="0" />
         <div class="row g-3">
             @{ var idx = 0; }
@@ -61,7 +60,7 @@ else
                             class="btn answer-btn answer-btn-@(idx % 4) w-100"
                             name="SelectedAnswerId"
                             value="@answer.AnswerId"
-                            onclick="setElapsed()">
+                            style="cursor: pointer; pointer-events: auto;">
                         @answer.AnswerText
                     </button>
                 </div>
@@ -73,19 +72,44 @@ else
 
 @section Scripts {
     <script>
+        console.log('Game page loaded, gameId: @Model.Game?.LiveGameId');
+        
         const timeLimit = @(Model.Question?.TimeLimitSeconds ?? 30);
         const start = Date.now();
         const el = document.getElementById('timer');
+        const form = document.getElementById('answerForm');
+        
         if (el) {
             const iv = setInterval(() => {
                 const secs = Math.max(0, timeLimit - Math.floor((Date.now() - start) / 1000));
                 el.textContent = secs;
                 if (secs <= 5) el.classList.add('danger');
-                if (secs === 0) clearInterval(iv);
+                if (secs === 0) {
+                    clearInterval(iv);
+                    console.log('Timer expired');
+                }
             }, 500);
         }
-        function setElapsed() {
-            document.getElementById('elapsedMs').value = Date.now() - start;
+        
+        if (form) {
+            console.log('Form found:', form);
+            
+            form.addEventListener('submit', function(e) {
+                const elapsedMs = Date.now() - start;
+                document.getElementById('elapsedMs').value = elapsedMs;
+                console.log('Form submitting, elapsed:', elapsedMs);
+            });
+            
+            const buttons = form.querySelectorAll('button[type="submit"]');
+            console.log('Found', buttons.length, 'answer buttons');
+            
+            buttons.forEach((btn, index) => {
+                btn.addEventListener('click', function(e) {
+                    console.log('Button', index, 'clicked, value:', this.value);
+                });
+            });
+        } else {
+            console.error('Form not found!');
         }
     </script>
 }
