@@ -19,31 +19,38 @@ public class EndGameModel(AppDbContext dbContext, LeaderboardService leaderboard
             return RedirectToLogin();
         }
 
-        Game = await dbContext.LiveGames
-            .Include(g => g.Quiz)
-            .FirstOrDefaultAsync(g => g.LiveGameId == gameId && g.HostUserId == userId.Value);
-
-        if (Game is null)
+        try
         {
-            return NotFound();
-        }
+            Game = await dbContext.LiveGames
+                .Include(g => g.Quiz)
+                .FirstOrDefaultAsync(g => g.LiveGameId == gameId && g.HostUserId == userId.Value);
 
-        if (Game.Status != "Ended")
-        {
-            var openQuestion = await dbContext.LiveQuestions
-                .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
-            
-            if (openQuestion is not null)
+            if (Game is null)
             {
-                openQuestion.ClosedAt = DateTime.UtcNow;
+                return RedirectToPage("Dashboard");
             }
 
-            Game.Status = "Ended";
-            Game.EndedAt = DateTime.UtcNow;
-            await dbContext.SaveChangesAsync();
-        }
+            if (Game.Status != "Ended")
+            {
+                var openQuestion = await dbContext.LiveQuestions
+                    .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
+                
+                if (openQuestion is not null)
+                {
+                    openQuestion.ClosedAt = DateTime.UtcNow;
+                }
 
-        Entries = await leaderboardService.GetLeaderboardAsync(gameId);
-        return Page();
+                Game.Status = "Ended";
+                Game.EndedAt = DateTime.UtcNow;
+                await dbContext.SaveChangesAsync();
+            }
+
+            Entries = await leaderboardService.GetLeaderboardAsync(gameId);
+            return Page();
+        }
+        catch (Exception)
+        {
+            return RedirectToPage("Dashboard");
+        }
     }
 }

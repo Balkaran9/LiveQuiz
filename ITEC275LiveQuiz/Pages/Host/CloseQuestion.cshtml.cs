@@ -18,40 +18,47 @@ public class CloseQuestionModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.
             return RedirectToLogin();
         }
 
-        LiveQuestion = await dbContext.LiveQuestions
-            .Include(lq => lq.LiveGame)
-            .ThenInclude(g => g!.Quiz)
-            .Include(lq => lq.Question)
-            .FirstOrDefaultAsync(lq => lq.LiveQuestionId == liveQuestionId && lq.LiveGame!.HostUserId == userId.Value);
-
-        if (LiveQuestion is null)
+        try
         {
-            return NotFound();
-        }
+            LiveQuestion = await dbContext.LiveQuestions
+                .Include(lq => lq.LiveGame)
+                .ThenInclude(g => g!.Quiz)
+                .Include(lq => lq.Question)
+                .FirstOrDefaultAsync(lq => lq.LiveQuestionId == liveQuestionId && lq.LiveGame!.HostUserId == userId.Value);
 
-        if (LiveQuestion.ClosedAt is null)
-        {
-            LiveQuestion.ClosedAt = DateTime.UtcNow;
-            await dbContext.SaveChangesAsync();
-        }
-
-        Results = await dbContext.LiveResponses
-            .AsNoTracking()
-            .Where(r => r.LiveQuestionId == liveQuestionId)
-            .Include(r => r.LiveParticipant)
-            .Include(r => r.Answer)
-            .OrderByDescending(r => r.IsCorrect)
-            .ThenBy(r => r.TimeMs)
-            .Select(r => new ResponseResult
+            if (LiveQuestion is null)
             {
-                Nickname = r.LiveParticipant!.Nickname,
-                AnswerText = r.Answer!.AnswerText,
-                IsCorrect = r.IsCorrect,
-                TimeMs = r.TimeMs
-            })
-            .ToListAsync();
+                return RedirectToPage("Dashboard");
+            }
 
-        return Page();
+            if (LiveQuestion.ClosedAt is null)
+            {
+                LiveQuestion.ClosedAt = DateTime.UtcNow;
+                await dbContext.SaveChangesAsync();
+            }
+
+            Results = await dbContext.LiveResponses
+                .AsNoTracking()
+                .Where(r => r.LiveQuestionId == liveQuestionId)
+                .Include(r => r.LiveParticipant)
+                .Include(r => r.Answer)
+                .OrderByDescending(r => r.IsCorrect)
+                .ThenBy(r => r.TimeMs)
+                .Select(r => new ResponseResult
+                {
+                    Nickname = r.LiveParticipant!.Nickname,
+                    AnswerText = r.Answer!.AnswerText,
+                    IsCorrect = r.IsCorrect,
+                    TimeMs = r.TimeMs
+                })
+                .ToListAsync();
+
+            return Page();
+        }
+        catch (Exception)
+        {
+            return RedirectToPage("Dashboard");
+        }
     }
 
     public class ResponseResult

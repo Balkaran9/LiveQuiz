@@ -19,17 +19,24 @@ public class LeaderboardModel(AppDbContext dbContext, LeaderboardService leaderb
             return RedirectToLogin();
         }
 
-        Game = await dbContext.LiveGames
-            .AsNoTracking()
-            .Include(g => g.Quiz)
-            .FirstOrDefaultAsync(g => g.LiveGameId == gameId && g.HostUserId == userId.Value);
-
-        if (Game is null)
+        try
         {
-            return NotFound();
-        }
+            Game = await dbContext.LiveGames
+                .AsNoTracking()
+                .Include(g => g.Quiz)
+                .FirstOrDefaultAsync(g => g.LiveGameId == gameId && g.HostUserId == userId.Value);
 
-        Entries = await leaderboardService.GetLeaderboardAsync(gameId);
-        return Page();
+            if (Game is null)
+            {
+                return RedirectToPage("Dashboard");
+            }
+
+            Entries = await leaderboardService.GetLeaderboardAsync(gameId);
+            return Page();
+        }
+        catch (Exception)
+        {
+            return RedirectToPage("Dashboard");
+        }
     }
 }

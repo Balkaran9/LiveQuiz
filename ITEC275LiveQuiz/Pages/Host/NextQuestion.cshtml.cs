@@ -23,83 +23,109 @@ public class NextQuestionModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.A
             return RedirectToLogin();
         }
 
-        Game = await dbContext.LiveGames
-            .Include(g => g.Quiz)
-            .FirstOrDefaultAsync(g => g.LiveGameId == gameId && g.HostUserId == userId.Value);
-
-        if (Game is null)
+        try
         {
-            return NotFound();
-        }
-
-        if (Game.Status == "Ended")
-        {
-            return RedirectToPage("Leaderboard", new { gameId = gameId });
-        }
-
-        LiveQuestion = await dbContext.LiveQuestions
-            .Include(lq => lq.Question)
-            .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
-
-        if (LiveQuestion is null)
-        {
-            var openedQuestionIds = await dbContext.LiveQuestions
+            Game = await dbContext.LiveGames
                 .AsNoTracking()
-                .Where(lq => lq.LiveGameId == gameId)
-                .Select(lq => lq.QuestionId)
-                .ToListAsync();
+                .Include(g => g.Quiz)
+                .FirstOrDefaultAsync(g => g.LiveGameId == gameId && g.HostUserId == userId.Value);
 
-            Question = await dbContext.Questions
+            if (Game is null)
+            {
+                return NotFound();
+            }
+
+            if (Game.Status == "Ended")
+            {
+                return RedirectToPage("Leaderboard", new { gameId = gameId });
+            }
+
+            LiveQuestion = await dbContext.LiveQuestions
                 .AsNoTracking()
-                .Where(q => q.QuizId == Game.QuizId && !openedQuestionIds.Contains(q.QuestionId))
-                .OrderBy(q => q.SortOrder)
-                .FirstOrDefaultAsync();
+                .Include(lq => lq.Question)
+                .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
+
+            if (LiveQuestion is null)
+            {
+                var openedQuestionIds = await dbContext.LiveQuestions
+                    .AsNoTracking()
+                    .Where(lq => lq.LiveGameId == gameId)
+                    .Select(lq => lq.QuestionId)
+                    .ToListAsync();
+
+                Question = await dbContext.Questions
+                    .AsNoTracking()
+                    .Where(q => q.QuizId == Game.QuizId && !openedQuestionIds.Contains(q.QuestionId))
+                    .OrderBy(q => q.SortOrder)
+                    .FirstOrDefaultAsync();
+
+                if (Question is null)
+                {
+                    NoMoreQuestions = true;
+                    return Page();
+                }
+
+                var gameToUpdate = await dbContext.LiveGames
+                    .FirstOrDefaultAsync(g => g.LiveGameId == gameId);
+
+                if (gameToUpdate is not null)
+                {
+                    gameToUpdate.Status = "InProgress";
+                }
+
+                LiveQuestion = new LiveQuestion
+                {
+                    LiveGameId = gameId,
+                    QuestionId = Question.QuestionId,
+                    OpenedAt = DateTime.UtcNow
+                };
+
+                dbContext.LiveQuestions.Add(LiveQuestion);
+                await dbContext.SaveChangesAsync();
+
+                Game = await dbContext.LiveGames
+                    .AsNoTracking()
+                    .Include(g => g.Quiz)
+                    .FirstOrDefaultAsync(g => g.LiveGameId == gameId);
+            }
+            else
+            {
+                Question = LiveQuestion.Question;
+            }
+
+            if (Question is null && LiveQuestion is not null)
+            {
+                Question = await dbContext.Questions
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(q => q.QuestionId == LiveQuestion.QuestionId);
+            }
 
             if (Question is null)
             {
-                NoMoreQuestions = true;
-                return Page();
+                return RedirectToPage("Lobby", new { gameId = gameId });
             }
 
-            LiveQuestion = new LiveQuestion
-            {
-                LiveGameId = gameId,
-                QuestionId = Question.QuestionId,
-                OpenedAt = DateTime.UtcNow
-            };
+            Answers = await dbContext.Answers
+                .AsNoTracking()
+                .Where(a => a.QuestionId == Question.QuestionId)
+                .OrderBy(a => a.AnswerId)
+                .ToListAsync();
 
-            Game.Status = "InProgress";
-            dbContext.LiveQuestions.Add(LiveQuestion);
-            await dbContext.SaveChangesAsync();
+            ResponseCount = await dbContext.LiveResponses
+                .AsNoTracking()
+                .Where(r => r.LiveQuestionId == LiveQuestion!.LiveQuestionId)
+                .CountAsync();
+
+            ParticipantCount = await dbContext.LiveParticipants
+                .AsNoTracking()
+                .Where(p => p.LiveGameId == gameId)
+                .CountAsync();
+
+            return Page();
         }
-        else
+        catch (Exception)
         {
-            Question = LiveQuestion.Question;
+            return RedirectToPage("Lobby", new { gameId = gameId });
         }
-
-        Question ??= await dbContext.Questions
-            .AsNoTracking()
-            .FirstOrDefaultAsync(q => q.QuestionId == LiveQuestion.QuestionId);
-        
-        Answers = await dbContext.Answers
-            .AsNoTracking()
-            .Where(a => a.QuestionId == LiveQuestion.QuestionId)
-            .OrderBy(a => a.AnswerId)
-            .ToListAsync();
-
-        var countsTask = dbContext.LiveResponses
-            .AsNoTracking()
-            .Where(r => r.LiveQuestionId == LiveQuestion.LiveQuestionId)
-            .CountAsync();
-        
-        var participantsTask = dbContext.LiveParticipants
-            .AsNoTracking()
-            .Where(p => p.LiveGameId == gameId)
-            .CountAsync();
-
-        ResponseCount = await countsTask;
-        ParticipantCount = await participantsTask;
-
-        return Page();
     }
 }
