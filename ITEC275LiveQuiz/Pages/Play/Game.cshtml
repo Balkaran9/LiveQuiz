@@ -76,7 +76,20 @@ else
 
 @section Scripts {
     <script>
-        console.log('Game page loaded, gameId: @Model.Game?.LiveGameId');
+        const hasGame = @(Model.Game != null ? "true" : "false");
+        const hasCurrentQuestion = @(Model.CurrentQuestion != null ? "true" : "false");
+        const alreadyAnswered = @(Model.AlreadyAnswered ? "true" : "false");
+        const answersCount = @Model.Answers.Count;
+        const gameEnded = @(Model.GameEnded ? "true" : "false");
+        
+        console.log('=== PAGE LOAD STATE ===');
+        console.log('Has Game:', hasGame);
+        console.log('Has CurrentQuestion:', hasCurrentQuestion);
+        console.log('Already Answered:', alreadyAnswered);
+        console.log('Answers Count:', answersCount);
+        console.log('Game Ended:', gameEnded);
+        
+        alert('Page State: Game=' + hasGame + ', Question=' + hasCurrentQuestion + ', Answered=' + alreadyAnswered + ', Answers=' + answersCount);
         
         const timeLimit = @(Model.Question?.TimeLimitSeconds ?? 30);
         const start = Date.now();
@@ -95,7 +108,7 @@ else
         }
         
         const buttons = document.querySelectorAll('.answer-button');
-        const gameId = @Model.Game.LiveGameId;
+        const gameId = @(Model.Game?.LiveGameId ?? 0);
         
         alert('Found ' + buttons.length + ' answer buttons. Game ID: ' + gameId);
         

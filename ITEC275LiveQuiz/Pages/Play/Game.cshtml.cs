@@ -28,18 +28,27 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
     public async Task<IActionResult> OnGetAsync(int gameId)
     {
+        System.Diagnostics.Debug.WriteLine($"GET: Loading game {gameId}");
+        
         Game = await dbContext.LiveGames
             .AsNoTracking()
             .Include(g => g.Quiz)
             .FirstOrDefaultAsync(g => g.LiveGameId == gameId);
 
-        if (Game is null) return NotFound();
+        if (Game is null)
+        {
+            System.Diagnostics.Debug.WriteLine("GET: Game not found");
+            return NotFound();
+        }
 
         var participantId = GetParticipantId(gameId);
         if (!participantId.HasValue)
         {
+            System.Diagnostics.Debug.WriteLine("GET: No participant ID in session");
             return RedirectToPage("Join", new { code = Game.JoinCode });
         }
+
+        System.Diagnostics.Debug.WriteLine($"GET: Participant ID = {participantId}");
 
         Participant = await dbContext.LiveParticipants
             .AsNoTracking()
@@ -47,6 +56,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
         if (Participant is null)
         {
+            System.Diagnostics.Debug.WriteLine("GET: Participant not found in database");
             return RedirectToPage("Join");
         }
 
@@ -55,6 +65,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
         if (GameEnded)
         {
+            System.Diagnostics.Debug.WriteLine("GET: Game has ended, redirecting to Stats");
             return RedirectToPage("Stats", new { gameId = gameId });
         }
 
@@ -65,6 +76,8 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                 .Include(lq => lq.Question)
                 .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
 
+            System.Diagnostics.Debug.WriteLine($"GET: CurrentQuestion = {(CurrentQuestion == null ? "NULL" : CurrentQuestion.LiveQuestionId.ToString())}");
+
             if (CurrentQuestion is not null)
             {
                 Question = CurrentQuestion.Question;
@@ -74,10 +87,18 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                     .OrderBy(a => a.AnswerId)
                     .ToListAsync();
 
+                System.Diagnostics.Debug.WriteLine($"GET: Loaded {Answers.Count} answers");
+
                 AlreadyAnswered = await dbContext.LiveResponses
                     .AsNoTracking()
                     .AnyAsync(r => r.LiveQuestionId == CurrentQuestion.LiveQuestionId
                                && r.LiveParticipantId == Participant.LiveParticipantId);
+
+                System.Diagnostics.Debug.WriteLine($"GET: AlreadyAnswered = {AlreadyAnswered}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("GET: No current question found");
             }
         }
 
