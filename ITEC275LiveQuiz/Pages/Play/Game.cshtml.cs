@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ITEC275LiveQuiz.Pages.Play;
 
+[IgnoreAntiforgeryToken]
 public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageModel
 {
     public LiveGame? Game { get; set; }

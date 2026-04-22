@@ -120,26 +120,26 @@ else
                     
                     const response = await fetch('/Play/Game/' + gameId, {
                         method: 'POST',
-                        body: formData,
-                        headers: {
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                        }
+                        body: formData
                     });
                     
                     console.log('Response status:', response.status);
+                    console.log('Response OK:', response.ok);
                     
-                    if (response.ok) {
+                    if (response.ok || response.redirected) {
                         console.log('Success! Redirecting...');
                         window.location.href = '/Play/Game/' + gameId;
                     } else {
                         console.error('Server error:', response.status);
+                        const text = await response.text();
+                        console.error('Response body:', text);
                         alert('Error submitting answer. Please try again.');
                         buttons.forEach(btn => btn.disabled = false);
                         document.getElementById('submitStatus').style.display = 'none';
                     }
                 } catch (error) {
                     console.error('Fetch error:', error);
-                    alert('Network error. Please check your connection.');
+                    alert('Network error: ' + error.message);
                     buttons.forEach(btn => btn.disabled = false);
                     document.getElementById('submitStatus').style.display = 'none';
                 }
