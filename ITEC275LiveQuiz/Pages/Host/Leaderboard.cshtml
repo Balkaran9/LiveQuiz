@@ -17,9 +17,12 @@ else
         </div>
         <div class="d-flex gap-2">
             <a asp-page="Analytics" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-info">Advanced Analytics</a>
-            <a asp-page="Lobby" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-secondary">Lobby</a>
-            <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-success">Next Question</a>
-            <a asp-page="EndGame" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-danger">End Game</a>
+            @if (Model.Game.Status != "Ended")
+            {
+                <a asp-page="Lobby" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-secondary">Lobby</a>
+                <a asp-page="NextQuestion" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-success">Next Question</a>
+                <a asp-page="EndGame" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-danger">End Game</a>
+            }
         </div>
     </div>
 

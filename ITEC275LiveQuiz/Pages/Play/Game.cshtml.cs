@@ -52,6 +52,11 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         GameEnded = Game.Status == "Ended";
         GameId = gameId;
 
+        if (GameEnded)
+        {
+            return RedirectToPage("Stats", new { gameId = gameId });
+        }
+
         if (!GameEnded)
         {
             CurrentQuestion = await dbContext.LiveQuestions
@@ -82,6 +87,15 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
     {
         var participantId = GetParticipantId(GameId);
         if (!participantId.HasValue) return RedirectToPage("Join");
+
+        var game = await dbContext.LiveGames
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.LiveGameId == GameId);
+
+        if (game is null || game.Status == "Ended")
+        {
+            return RedirectToPage("Stats", new { gameId = GameId });
+        }
 
         var liveQuestion = await dbContext.LiveQuestions
             .AsNoTracking()

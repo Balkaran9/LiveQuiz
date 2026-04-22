@@ -32,6 +32,11 @@ public class NextQuestionModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.A
             return NotFound();
         }
 
+        if (Game.Status == "Ended")
+        {
+            return RedirectToPage("Leaderboard", new { gameId = gameId });
+        }
+
         LiveQuestion = await dbContext.LiveQuestions
             .Include(lq => lq.Question)
             .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
