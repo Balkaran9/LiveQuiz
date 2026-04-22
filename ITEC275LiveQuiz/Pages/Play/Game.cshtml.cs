@@ -145,7 +145,11 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
             
             CurrentQuestion = liveQuestion;
             Question = liveQuestion.Question;
-            Answers = new List<Answer>();
+            Answers = await dbContext.Answers
+                .AsNoTracking()
+                .Where(a => a.QuestionId == liveQuestion.QuestionId)
+                .OrderBy(a => a.AnswerId)
+                .ToListAsync();
             AlreadyAnswered = alreadyAnswered;
             GameEnded = false;
 
