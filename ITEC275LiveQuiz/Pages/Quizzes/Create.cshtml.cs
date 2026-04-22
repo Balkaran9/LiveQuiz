@@ -28,18 +28,26 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
             return Page();
         }
 
-        var quiz = new Quiz
+        try
         {
-            OwnerUserId = userId.Value,
-            Title = Input.Title.Trim(),
-            IsPublic = Input.IsPublic,
-            CreatedAt = DateTime.UtcNow
-        };
+            var quiz = new Quiz
+            {
+                OwnerUserId = userId.Value,
+                Title = Input.Title.Trim(),
+                IsPublic = Input.IsPublic,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        dbContext.Quizzes.Add(quiz);
-        await dbContext.SaveChangesAsync();
+            dbContext.Quizzes.Add(quiz);
+            await dbContext.SaveChangesAsync();
 
-        return RedirectToPage("Details", new { id = quiz.QuizId });
+            return RedirectToPage("Details", new { id = quiz.QuizId });
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Unable to create quiz. Please try again.");
+            return Page();
+        }
     }
 
     public class InputModel

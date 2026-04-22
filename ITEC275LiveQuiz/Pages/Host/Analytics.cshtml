@@ -138,32 +138,42 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
+        // Pie Chart
         const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
         new Chart(accuracyCtx, {
-            type: 'pie',
+            type: 'doughnut',
             data: {
                 labels: ['Correct', 'Incorrect'],
                 datasets: [{
                     data: [@Model.GameStats.CorrectResponses, @Model.GameStats.IncorrectResponses],
-                    backgroundColor: ['#28a745', '#dc3545']
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 0,
+                    hoverOffset: 15
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
+                cutout: '60%',
                 plugins: {
                     title: {
                         display: true,
                         text: 'Overall Accuracy Distribution',
-                        font: { size: 16 }
+                        font: { size: 18, weight: 'bold' },
+                        padding: 20
                     },
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 14 }
+                        }
                     }
                 }
             }
         });
 
+        // Bar Chart with Rounded Corners
         const questionCtx = document.getElementById('questionChart').getContext('2d');
         new Chart(questionCtx, {
             type: 'bar',
@@ -174,34 +184,46 @@
                         label: 'Correct',
                         data: [@string.Join(",", Model.QuestionStats.Select(q => q.CorrectResponses))],
                         backgroundColor: '#28a745',
-                        borderWidth: 0
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        borderSkipped: false
                     },
                     {
                         label: 'Incorrect',
                         data: [@string.Join(",", Model.QuestionStats.Select(q => q.IncorrectResponses))],
                         backgroundColor: '#dc3545',
-                        borderWidth: 0
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        borderSkipped: false
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 scales: {
                     x: {
                         stacked: false,
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            font: { size: 12 }
                         }
                     },
                     y: {
                         stacked: false,
                         beginAtZero: true,
                         ticks: {
-                            stepSize: 1
+                            stepSize: 1,
+                            font: { size: 12 }
                         },
                         grid: {
-                            color: '#e0e0e0',
+                            color: 'rgba(0, 0, 0, 0.05)',
                             lineWidth: 1
                         }
                     }
@@ -210,10 +232,24 @@
                     title: {
                         display: true,
                         text: 'Correct vs Incorrect Responses by Question',
-                        font: { size: 16, weight: 'bold' }
+                        font: { size: 18, weight: 'bold' },
+                        padding: 20
                     },
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 14 },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 13 },
+                        cornerRadius: 8
                     }
                 }
             }
