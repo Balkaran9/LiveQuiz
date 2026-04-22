@@ -34,6 +34,7 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
             {
                 OwnerUserId = userId.Value,
                 Title = Input.Title.Trim(),
+                Category = null,
                 IsPublic = Input.IsPublic,
                 CreatedAt = DateTime.UtcNow
             };
@@ -43,9 +44,9 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
 
             return RedirectToPage("Details", new { id = quiz.QuizId });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ModelState.AddModelError(string.Empty, "Unable to create quiz. Please try again.");
+            ModelState.AddModelError(string.Empty, $"Unable to create quiz: {ex.Message}");
             return Page();
         }
     }
