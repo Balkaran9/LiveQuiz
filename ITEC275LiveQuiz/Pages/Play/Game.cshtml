@@ -76,20 +76,7 @@ else
 
 @section Scripts {
     <script>
-        const hasGame = @(Model.Game != null ? "true" : "false");
-        const hasCurrentQuestion = @(Model.CurrentQuestion != null ? "true" : "false");
-        const alreadyAnswered = @(Model.AlreadyAnswered ? "true" : "false");
-        const answersCount = @Model.Answers.Count;
-        const gameEnded = @(Model.GameEnded ? "true" : "false");
-        
-        console.log('=== PAGE LOAD STATE ===');
-        console.log('Has Game:', hasGame);
-        console.log('Has CurrentQuestion:', hasCurrentQuestion);
-        console.log('Already Answered:', alreadyAnswered);
-        console.log('Answers Count:', answersCount);
-        console.log('Game Ended:', gameEnded);
-        
-        alert('Page State: Game=' + hasGame + ', Question=' + hasCurrentQuestion + ', Answered=' + alreadyAnswered + ', Answers=' + answersCount);
+        console.log('Game page loaded, gameId: @Model.Game?.LiveGameId');
         
         const timeLimit = @(Model.Question?.TimeLimitSeconds ?? 30);
         const start = Date.now();
@@ -110,21 +97,26 @@ else
         const buttons = document.querySelectorAll('.answer-button');
         const gameId = @(Model.Game?.LiveGameId ?? 0);
         
-        alert('Found ' + buttons.length + ' answer buttons. Game ID: ' + gameId);
+        console.log('Found ' + buttons.length + ' answer buttons. Game ID: ' + gameId);
         
         buttons.forEach((button, index) => {
             button.addEventListener('click', async function() {
                 const answerId = this.getAttribute('data-answer-id');
                 const elapsedMs = Date.now() - start;
                 
-                alert('Button ' + (index + 1) + ' clicked! Answer ID: ' + answerId);
-                console.log('Button clicked! AnswerId:', answerId, 'Elapsed:', elapsedMs);
+                console.log('Button ' + (index + 1) + ' clicked! Answer ID: ' + answerId);
                 
-                // Disable all buttons
-                buttons.forEach(btn => btn.disabled = true);
+                // Disable all buttons immediately
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                });
                 
-                // Show loading
-                document.getElementById('submitStatus').style.display = 'block';
+                // Show loading immediately
+                const statusDiv = document.getElementById('submitStatus');
+                if (statusDiv) {
+                    statusDiv.style.display = 'block';
+                }
                 
                 try {
                     const formData = new FormData();
@@ -132,36 +124,35 @@ else
                     formData.append('ElapsedMs', elapsedMs);
                     formData.append('GameId', gameId);
                     
-                    const url = '/Play/Game/' + gameId;
-                    alert('Sending POST to: ' + url);
-                    console.log('Submitting to ' + url);
+                    console.log('Submitting to /Play/Game/' + gameId);
                     
-                    const response = await fetch(url, {
+                    const response = await fetch('/Play/Game/' + gameId, {
                         method: 'POST',
                         body: formData
                     });
                     
-                    alert('Response status: ' + response.status + ', OK: ' + response.ok);
-                    console.log('Response status:', response.status);
-                    console.log('Response OK:', response.ok);
+                    console.log('Response status:', response.status, 'OK:', response.ok);
                     
                     if (response.ok || response.redirected) {
-                        alert('Success! Now redirecting to /Play/Game/' + gameId);
                         console.log('Success! Redirecting...');
                         window.location.href = '/Play/Game/' + gameId;
                     } else {
-                        const text = await response.text();
-                        alert('ERROR: Status ' + response.status + '. Response: ' + text.substring(0, 200));
                         console.error('Server error:', response.status);
-                        console.error('Response body:', text);
-                        buttons.forEach(btn => btn.disabled = false);
-                        document.getElementById('submitStatus').style.display = 'none';
+                        alert('Error submitting answer. Please try again.');
+                        buttons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                        });
+                        if (statusDiv) statusDiv.style.display = 'none';
                     }
                 } catch (error) {
-                    alert('FETCH ERROR: ' + error.message);
                     console.error('Fetch error:', error);
-                    buttons.forEach(btn => btn.disabled = false);
-                    document.getElementById('submitStatus').style.display = 'none';
+                    alert('Network error: ' + error.message);
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    });
+                    if (statusDiv) statusDiv.style.display = 'none';
                 }
             });
         });
