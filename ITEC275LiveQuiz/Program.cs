@@ -3,7 +3,7 @@ using ITEC275LiveQuiz.Seed;
 using ITEC275LiveQuiz.Services;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args;
+var builder = WebApplication.CreateBuilder(args);
 
 // Configure Railway port
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
