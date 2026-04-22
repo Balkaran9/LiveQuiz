@@ -83,8 +83,9 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync(int gameId)
     {
+        GameId = gameId;
         var participantId = GetParticipantId(GameId);
         if (!participantId.HasValue) return RedirectToPage("Join");
 
