@@ -30,12 +30,12 @@ else if (Model.CurrentQuestion is null)
 }
 else if (Model.AlreadyAnswered)
 {
-    <meta http-equiv="refresh" content="3">
+    <meta http-equiv="refresh" content="2">
     <div class="waiting-screen">
         <h2>Answer Submitted!</h2>
         <p class="lead text-muted">Waiting for the host to close the question...</p>
         <div class="spinner-border text-success mt-3" role="status"><span class="visually-hidden">Loading...</span></div>
-        <p class="text-muted mt-3"><small>Auto-refreshing every 3 seconds</small></p>
+        <p class="text-muted mt-3"><small>Auto-refreshing every 2 seconds</small></p>
     </div>
 }
 else
@@ -100,11 +100,11 @@ else
                 const answerId = this.getAttribute('data-answer-id');
                 const elapsedMs = Date.now() - start;
 
-                // 1. IMMEDIATELY show submitted screen - no waiting
+                // 1. IMMEDIATELY show submitted screen
                 document.getElementById('answersDiv').style.display = 'none';
                 document.getElementById('submittedDiv').style.display = 'block';
 
-                // 2. Submit in background
+                // 2. Submit answer, THEN reload after confirmed
                 const formData = new FormData();
                 formData.append('SelectedAnswerId', answerId);
                 formData.append('ElapsedMs', elapsedMs);
@@ -113,12 +113,18 @@ else
                 fetch('/Play/Game/' + gameId, {
                     method: 'POST',
                     body: formData
-                }).then(function() {
-                    // Start polling to detect question close
-                    pollForNextQuestion();
+                }).then(function(response) {
+                    console.log('POST response:', response.status);
+                    // Wait 1 second after save confirmed, then reload
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
                 }).catch(function(err) {
                     console.error('Submit error:', err);
-                    pollForNextQuestion();
+                    // Still reload even on error
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
                 });
             });
         });
