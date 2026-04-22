@@ -12,10 +12,9 @@ public class User
 
     [StringLength(100)]
     [EmailAddress]
-    public string? Email { get; set; } // <-- Added
-
+    public string? Email { get; set; } 
     [StringLength(100)]
-    public string? FullName { get; set; } // <-- Added
+    public string? FullName { get; set; } 
 
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
