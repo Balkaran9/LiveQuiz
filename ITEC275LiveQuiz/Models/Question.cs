@@ -14,8 +14,6 @@ public class Question
     [Range(5, 300)]
     public int TimeLimitSeconds { get; set; } = 30;
 
-    public bool ShuffleAnswers { get; set; }
-
     public int SortOrder { get; set; }
 
     public Quiz? Quiz { get; set; }

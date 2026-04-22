@@ -11,11 +11,9 @@ public class Quiz
     [StringLength(200)]
     public string Title { get; set; } = string.Empty;
 
-    [StringLength(100)]
+    [MaxLength(100)]
     public string? Category { get; set; }
-
     public bool IsPublic { get; set; }
-    public bool ShuffleQuestions { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User? OwnerUser { get; set; }

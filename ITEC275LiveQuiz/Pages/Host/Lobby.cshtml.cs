@@ -22,6 +22,7 @@ public class LobbyModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageM
         }
 
         Game = await dbContext.LiveGames
+            .AsNoTracking()
             .Include(g => g.Quiz)
             .FirstOrDefaultAsync(g => g.LiveGameId == gameId && g.HostUserId == userId.Value);
 
@@ -31,13 +32,26 @@ public class LobbyModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageM
         }
 
         Participants = await dbContext.LiveParticipants
+            .AsNoTracking()
             .Where(p => p.LiveGameId == gameId)
             .OrderBy(p => p.JoinedAt)
             .ToListAsync();
 
-        TotalQuestions = await dbContext.Questions.CountAsync(q => q.QuizId == Game.QuizId);
-        OpenedQuestions = await dbContext.LiveQuestions.CountAsync(q => q.LiveGameId == gameId);
+        var questionStats = await dbContext.Questions
+            .Where(q => q.QuizId == Game.QuizId)
+            .GroupJoin(
+                dbContext.LiveQuestions.Where(lq => lq.LiveGameId == gameId),
+                q => q.QuestionId,
+                lq => lq.QuestionId,
+                (q, lq) => new { IsOpened = lq.Any() })
+            .AsNoTracking()
+            .ToListAsync();
+
+        TotalQuestions = questionStats.Count;
+        OpenedQuestions = questionStats.Count(s => s.IsOpened);
+        
         OpenLiveQuestionId = await dbContext.LiveQuestions
+            .AsNoTracking()
             .Where(q => q.LiveGameId == gameId && q.ClosedAt == null)
             .Select(q => (int?)q.LiveQuestionId)
             .FirstOrDefaultAsync();

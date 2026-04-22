@@ -60,7 +60,6 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
             QuizId = quizId,
             QuestionText = Input.QuestionText.Trim(),
             TimeLimitSeconds = Input.TimeLimitSeconds,
-            ShuffleAnswers = Input.ShuffleAnswers,
             SortOrder = Input.SortOrder
         };
 
@@ -78,8 +77,6 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
 
         [Range(5, 300)]
         public int TimeLimitSeconds { get; set; } = 20;
-
-        public bool ShuffleAnswers { get; set; }
 
         public int SortOrder { get; set; } = 1;
     }

@@ -29,11 +29,6 @@
         </div>
     </div>
 
-    <div class="form-check mb-3">
-        <input asp-for="Input.ShuffleAnswers" class="form-check-input" />
-        <label asp-for="Input.ShuffleAnswers" class="form-check-label">Shuffle answers (randomize answer order for participants)</label>
-    </div>
-
     <button type="submit" class="btn btn-primary">Save</button>
     <a asp-page="/Quizzes/Details" asp-route-id="@Model.QuizId" class="btn btn-link">Back</a>
 </form>

@@ -9,9 +9,6 @@ public class IndexModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageM
 {
     public List<Quiz> Quizzes { get; set; } = [];
 
-    [BindProperty(SupportsGet = true)]
-    public string? SearchTerm { get; set; }
-
     public async Task<IActionResult> OnGetAsync()
     {
         var userId = GetCurrentUserId();
@@ -20,15 +17,8 @@ public class IndexModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageM
             return RedirectToLogin();
         }
 
-        var query = dbContext.Quizzes
-            .Where(q => q.OwnerUserId == userId.Value);
-
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
-        {
-            query = query.Where(q => q.Title.Contains(SearchTerm));
-        }
-
-        Quizzes = await query
+        Quizzes = await dbContext.Quizzes
+            .Where(q => q.OwnerUserId == userId.Value)
             .Include(q => q.Questions)
             .OrderByDescending(q => q.CreatedAt)
             .ToListAsync();

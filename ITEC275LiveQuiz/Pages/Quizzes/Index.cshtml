@@ -9,17 +9,6 @@
     <a asp-page="Create" class="btn btn-primary">Create Quiz</a>
 </div>
 
-<form method="get" class="mb-3">
-    <div class="input-group">
-        <input type="text" name="SearchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search quizzes..." />
-        <button type="submit" class="btn btn-outline-secondary">?? Search</button>
-        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
-        {
-            <a asp-page="Index" class="btn btn-outline-danger">Clear</a>
-        }
-    </div>
-</form>
-
 @if (!Model.Quizzes.Any())
 {
     <div class="alert alert-info">No quizzes yet. Create one or use the seeded demo account.</div>
@@ -40,18 +29,11 @@ else
         {
             <tr>
                 <td>@quiz.Title</td>
-                <td>
-                    @(quiz.IsPublic ? "Public" : "Private")
-                    @if (!string.IsNullOrWhiteSpace(quiz.Category))
-                    {
-                        <span class="badge bg-info text-dark ms-2">@quiz.Category</span>
-                    }
-                </td>
+                <td>@(quiz.IsPublic ? "Public" : "Private")</td>
                 <td>@quiz.Questions.Count</td>
                 <td class="text-end">
                     <a asp-page="Details" asp-route-id="@quiz.QuizId" class="btn btn-sm btn-outline-primary">Details</a>
                     <a asp-page="Edit" asp-route-id="@quiz.QuizId" class="btn btn-sm btn-outline-secondary">Edit</a>
-                    <a asp-page="Clone" asp-route-id="@quiz.QuizId" class="btn btn-sm btn-outline-info">?? Clone</a>
                     <a asp-page="Delete" asp-route-id="@quiz.QuizId" class="btn btn-sm btn-outline-danger">Delete</a>
                     <a asp-page="/Host/Start" asp-route-quizId="@quiz.QuizId" class="btn btn-sm btn-success">? Start Game</a>
                 </td>

@@ -32,9 +32,7 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
         {
             OwnerUserId = userId.Value,
             Title = Input.Title.Trim(),
-            Category = Input.Category?.Trim(),
             IsPublic = Input.IsPublic,
-            ShuffleQuestions = Input.ShuffleQuestions,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -50,10 +48,6 @@ public class CreateModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPage
         [StringLength(200)]
         public string Title { get; set; } = string.Empty;
 
-        [StringLength(100)]
-        public string? Category { get; set; }
-
         public bool IsPublic { get; set; }
-        public bool ShuffleQuestions { get; set; }
     }
 }

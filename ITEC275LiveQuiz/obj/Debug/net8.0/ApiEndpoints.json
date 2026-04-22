@@ -1,0 +1,183 @@
+[
+  {
+    "ContainingType": "ITEC275LiveQuiz.Controllers.GamesController",
+    "Method": "GetLeaderboard",
+    "RelativePath": "api/Games/{gameId}/leaderboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "gameId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ITEC275LiveQuiz.Controllers.ApiResponse\u00601[[ITEC275LiveQuiz.Controllers.LeaderboardResponse, ITEC275LiveQuiz, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ITEC275LiveQuiz.Controllers.GamesController",
+    "Method": "GetGameStatus",
+    "RelativePath": "api/Games/{gameId}/status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "gameId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ITEC275LiveQuiz.Controllers.ApiResponse\u00601[[ITEC275LiveQuiz.Controllers.GameStatusDto, ITEC275LiveQuiz, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ITEC275LiveQuiz.Controllers.GamesController",
+    "Method": "JoinGame",
+    "RelativePath": "api/Games/join",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ITEC275LiveQuiz.Controllers.JoinGameRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ITEC275LiveQuiz.Controllers.ApiResponse\u00601[[ITEC275LiveQuiz.Controllers.JoinGameResponse, ITEC275LiveQuiz, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ITEC275LiveQuiz.Controllers.QuizzesController",
+    "Method": "GetQuiz",
+    "RelativePath": "api/Quizzes/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ITEC275LiveQuiz.Controllers.ApiResponse\u00601[[ITEC275LiveQuiz.Controllers.QuizDetailDto, ITEC275LiveQuiz, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ITEC275LiveQuiz.Controllers.QuizzesController",
+    "Method": "GetCategories",
+    "RelativePath": "api/Quizzes/categories",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "ITEC275LiveQuiz.Controllers.ApiResponse\u00601[[System.Collections.Generic.List\u00601[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ITEC275LiveQuiz.Controllers.QuizzesController",
+    "Method": "GetPublicQuizzes",
+    "RelativePath": "api/Quizzes/public",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "category",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ITEC275LiveQuiz.Controllers.ApiResponse\u00601[[System.Collections.Generic.List\u00601[[ITEC275LiveQuiz.Controllers.QuizDto, ITEC275LiveQuiz, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Program\u002B\u003C\u003Ec",
+    "Method": "\u003C\u003CMain\u003E$\u003Eb__0_5",
+    "RelativePath": "health",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  }
+]

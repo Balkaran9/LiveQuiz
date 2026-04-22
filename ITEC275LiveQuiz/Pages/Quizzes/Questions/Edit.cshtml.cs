@@ -43,7 +43,6 @@ public class EditModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
         question.QuestionText = Input.QuestionText.Trim();
         question.TimeLimitSeconds = Input.TimeLimitSeconds;
-        question.ShuffleAnswers = Input.ShuffleAnswers;
         question.SortOrder = Input.SortOrder;
         await dbContext.SaveChangesAsync();
 
@@ -76,7 +75,6 @@ public class EditModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         {
             QuestionText = Question.QuestionText,
             TimeLimitSeconds = Question.TimeLimitSeconds,
-            ShuffleAnswers = Question.ShuffleAnswers,
             SortOrder = Question.SortOrder
         };
 
@@ -91,8 +89,6 @@ public class EditModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
         [Range(5, 300)]
         public int TimeLimitSeconds { get; set; }
-
-        public bool ShuffleAnswers { get; set; }
 
         public int SortOrder { get; set; }
     }

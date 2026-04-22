@@ -36,6 +36,7 @@ public class CloseQuestionModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.
         }
 
         Results = await dbContext.LiveResponses
+            .AsNoTracking()
             .Where(r => r.LiveQuestionId == liveQuestionId)
             .Include(r => r.LiveParticipant)
             .Include(r => r.Answer)

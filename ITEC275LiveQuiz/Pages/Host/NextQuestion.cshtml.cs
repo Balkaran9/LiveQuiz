@@ -39,22 +39,16 @@ public class NextQuestionModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.A
         if (LiveQuestion is null)
         {
             var openedQuestionIds = await dbContext.LiveQuestions
+                .AsNoTracking()
                 .Where(lq => lq.LiveGameId == gameId)
                 .Select(lq => lq.QuestionId)
                 .ToListAsync();
 
-            var questionQuery = dbContext.Questions
-                .Where(q => q.QuizId == Game.QuizId && !openedQuestionIds.Contains(q.QuestionId));
-
-            if (Game.Quiz!.ShuffleQuestions)
-            {
-                var allAvailable = await questionQuery.ToListAsync();
-                Question = allAvailable.OrderBy(_ => Random.Shared.Next()).FirstOrDefault();
-            }
-            else
-            {
-                Question = await questionQuery.OrderBy(q => q.SortOrder).FirstOrDefaultAsync();
-            }
+            Question = await dbContext.Questions
+                .AsNoTracking()
+                .Where(q => q.QuizId == Game.QuizId && !openedQuestionIds.Contains(q.QuestionId))
+                .OrderBy(q => q.SortOrder)
+                .FirstOrDefaultAsync();
 
             if (Question is null)
             {
@@ -78,16 +72,28 @@ public class NextQuestionModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.A
             Question = LiveQuestion.Question;
         }
 
-        Question ??= await dbContext.Questions.FirstOrDefaultAsync(q => q.QuestionId == LiveQuestion.QuestionId);
+        Question ??= await dbContext.Questions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(q => q.QuestionId == LiveQuestion.QuestionId);
+        
         Answers = await dbContext.Answers
+            .AsNoTracking()
             .Where(a => a.QuestionId == LiveQuestion.QuestionId)
             .OrderBy(a => a.AnswerId)
             .ToListAsync();
 
-        ResponseCount = await dbContext.LiveResponses
-            .CountAsync(r => r.LiveQuestionId == LiveQuestion.LiveQuestionId);
-        ParticipantCount = await dbContext.LiveParticipants
-            .CountAsync(p => p.LiveGameId == gameId);
+        var countsTask = dbContext.LiveResponses
+            .AsNoTracking()
+            .Where(r => r.LiveQuestionId == LiveQuestion.LiveQuestionId)
+            .CountAsync();
+        
+        var participantsTask = dbContext.LiveParticipants
+            .AsNoTracking()
+            .Where(p => p.LiveGameId == gameId)
+            .CountAsync();
+
+        ResponseCount = await countsTask;
+        ParticipantCount = await participantsTask;
 
         return Page();
     }

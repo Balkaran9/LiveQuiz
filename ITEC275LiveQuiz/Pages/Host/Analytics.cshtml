@@ -4,180 +4,181 @@
     ViewData["Title"] = "Game Analytics";
 }
 
-<h1 class="mb-4">?? Advanced Analytics</h1>
-<p class="lead text-muted">@Model.QuizTitle</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Advanced Analytics</h1>
+        <p class="text-muted mb-0">@Model.Game?.Quiz?.Title</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-page="Analytics" asp-route-gameId="@Model.Game!.LiveGameId" asp-page-handler="ExportCsv" class="btn btn-success">
+            Export to CSV
+        </a>
+        <a asp-page="Leaderboard" asp-route-gameId="@Model.Game.LiveGameId" class="btn btn-outline-primary">
+            Back to Leaderboard
+        </a>
+    </div>
+</div>
 
-<!-- Summary Cards -->
-<div class="row g-4 mb-5">
+<div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="card text-center shadow-sm analytics-card">
+        <div class="card text-center shadow-sm">
             <div class="card-body">
-                <div class="display-4 fw-bold text-success">@Math.Round(Model.AverageAccuracy, 1)%</div>
-                <div class="text-muted">Average Accuracy</div>
-                <div class="progress mt-2" style="height: 8px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: @Model.AverageAccuracy%"></div>
-                </div>
+                <div class="display-6 fw-bold text-primary">@Model.GameStats.TotalParticipants</div>
+                <div class="text-muted">Participants</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-center shadow-sm analytics-card">
+        <div class="card text-center shadow-sm">
             <div class="card-body">
-                <div class="display-4 fw-bold text-primary">@Math.Round(Model.AverageResponseTime, 1)s</div>
+                <div class="display-6 fw-bold text-info">@Model.GameStats.TotalQuestions</div>
+                <div class="text-muted">Questions</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-6 fw-bold text-success">@Model.GameStats.AvgAccuracy.ToString("F1")%</div>
+                <div class="text-muted">Avg Accuracy</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="display-6 fw-bold text-warning">@Model.GameStats.AvgResponseTime.ToString("F1")s</div>
                 <div class="text-muted">Avg Response Time</div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm analytics-card">
-            <div class="card-body">
-                <div class="display-4 fw-bold text-warning">@Model.QuestionStats.Count</div>
-                <div class="text-muted">Questions Asked</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm analytics-card">
-            <div class="card-body">
-                <div class="display-4 fw-bold text-info">@Model.TopPerformers.Count</div>
-                <div class="text-muted">Total Players</div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Charts Row -->
-<div class="row g-4 mb-4">
-    <!-- Question Performance -->
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <strong>?? Question Performance Breakdown</strong>
-            </div>
-            <div class="card-body">
-                <canvas id="questionChart" style="max-height: 300px;"></canvas>
-            </div>
-        </div>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Overall Performance</h5>
     </div>
-
-    <!-- Difficulty Analysis -->
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-success text-white">
-                <strong>?? Difficulty Analysis</strong>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <canvas id="accuracyChart" width="400" height="300"></canvas>
             </div>
-            <div class="card-body">
-                <h6 class="text-success">? Easiest Question</h6>
-                <p class="small text-muted">@Model.EasiestQuestion</p>
-                <hr />
-                <h6 class="text-danger">? Hardest Question</h6>
-                <p class="small text-muted">@Model.HardestQuestion</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Top Performers -->
-<div class="row g-4 mb-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-warning text-dark">
-                <strong>?? Top 10 Performers</strong>
-            </div>
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Rank</th>
-                        <th>Player</th>
-                        <th>Points</th>
-                        <th>Accuracy</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{ var rank = 1; }
-                    @foreach (var p in Model.TopPerformers)
-                    {
-                        <tr>
-                            <td>@(rank <= 3 ? (rank == 1 ? "??" : rank == 2 ? "??" : "??") : $"#{rank}")</td>
-                            <td>@p.Nickname</td>
-                            <td class="fw-bold text-primary">@p.TotalPoints</td>
-                            <td>@Math.Round(p.Accuracy, 1)%</td>
-                        </tr>
-                        rank++;
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Question Details -->
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-info text-white">
-                <strong>?? Question-by-Question Stats</strong>
-            </div>
-            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                @foreach (var q in Model.QuestionStats)
-                {
-                    <div class="mb-3 p-3 border rounded">
-                        <h6 class="mb-2">@q.QuestionText</h6>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <small class="text-muted">Accuracy:</small>
-                                <div class="progress" style="height: 20px;">
-                                    <div class="progress-bar bg-success" style="width: @q.Accuracy%">
-                                        @Math.Round(q.Accuracy, 0)%
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Avg Time: @Math.Round(q.AverageTime / 1000.0, 1)s</small><br />
-                                <small class="text-success">? @q.CorrectCount</small> / 
-                                <small class="text-danger">? @q.IncorrectCount</small>
+            <div class="col-md-6">
+                <div class="d-flex flex-column justify-content-center h-100">
+                    <div class="mb-3">
+                        <h6 class="text-success">Correct Responses</h6>
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: @((Model.GameStats.TotalResponses > 0 ? Model.GameStats.CorrectResponses * 100.0 / Model.GameStats.TotalResponses : 0).ToString("F1"))%">
+                                @Model.GameStats.CorrectResponses (@((Model.GameStats.TotalResponses > 0 ? Model.GameStats.CorrectResponses * 100.0 / Model.GameStats.TotalResponses : 0).ToString("F1"))%)
                             </div>
                         </div>
                     </div>
-                }
+                    <div>
+                        <h6 class="text-danger">Incorrect Responses</h6>
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: @((Model.GameStats.TotalResponses > 0 ? Model.GameStats.IncorrectResponses * 100.0 / Model.GameStats.TotalResponses : 0).ToString("F1"))%">
+                                @Model.GameStats.IncorrectResponses (@((Model.GameStats.TotalResponses > 0 ? Model.GameStats.IncorrectResponses * 100.0 / Model.GameStats.TotalResponses : 0).ToString("F1"))%)
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Export & Actions -->
-<div class="text-center mb-5">
-    <a asp-page="Leaderboard" asp-route-gameId="@Model.LiveGameId" class="btn btn-primary me-2">?? View Leaderboard</a>
-    <a asp-page="EndGame" asp-route-gameId="@Model.LiveGameId" class="btn btn-outline-secondary">?? Final Results</a>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Question-by-Question Analysis</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="questionChart" width="400" height="300"></canvas>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">Detailed Question Statistics</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Question</th>
+                    <th class="text-center">Total Responses</th>
+                    <th class="text-center">Correct</th>
+                    <th class="text-center">Incorrect</th>
+                    <th class="text-center">Accuracy</th>
+                    <th class="text-center">Avg Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var stat in Model.QuestionStats)
+                {
+                    <tr>
+                        <td>@stat.QuestionText</td>
+                        <td class="text-center">@stat.TotalResponses</td>
+                        <td class="text-center"><span class="badge bg-success">@stat.CorrectResponses</span></td>
+                        <td class="text-center"><span class="badge bg-danger">@stat.IncorrectResponses</span></td>
+                        <td class="text-center">
+                            <div class="progress" style="height: 20px; min-width: 80px;">
+                                <div class="progress-bar @(stat.CorrectPercentage >= 70 ? "bg-success" : stat.CorrectPercentage >= 50 ? "bg-warning" : "bg-danger")" role="progressbar" style="width: @stat.CorrectPercentage.ToString("F1")%">
+                                    @stat.CorrectPercentage.ToString("F1")%
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">@stat.AvgTimeSeconds.ToString("F1")s</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        const ctx = document.getElementById('questionChart');
-        const labels = [@Html.Raw(string.Join(",", Model.QuestionStats.Select((q, i) => $"'Q{i + 1}'")))];
-        const accuracyData = [@string.Join(",", Model.QuestionStats.Select(q => Math.Round(q.Accuracy, 1)))];
-        const avgTimeData = [@string.Join(",", Model.QuestionStats.Select(q => Math.Round(q.AverageTime / 1000.0, 1)))];
+        const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+        new Chart(accuracyCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Correct', 'Incorrect'],
+                datasets: [{
+                    data: [@Model.GameStats.CorrectResponses, @Model.GameStats.IncorrectResponses],
+                    backgroundColor: ['#28a745', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Overall Accuracy Distribution',
+                        font: { size: 16 }
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
 
-        new Chart(ctx, {
+        const questionCtx = document.getElementById('questionChart').getContext('2d');
+        new Chart(questionCtx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: [@Html.Raw(string.Join(",", Model.QuestionStats.Select((q, i) => $"'Q{i + 1}'")))],
                 datasets: [
                     {
-                        label: 'Accuracy (%)',
-                        data: accuracyData,
-                        backgroundColor: 'rgba(38, 137, 13, 0.7)',
-                        borderColor: 'rgba(38, 137, 13, 1)',
-                        borderWidth: 2,
-                        yAxisID: 'y'
+                        label: 'Correct',
+                        data: [@string.Join(",", Model.QuestionStats.Select(q => q.CorrectResponses))],
+                        backgroundColor: '#28a745'
                     },
                     {
-                        label: 'Avg Time (s)',
-                        data: avgTimeData,
-                        backgroundColor: 'rgba(70, 23, 143, 0.7)',
-                        borderColor: 'rgba(70, 23, 143, 1)',
-                        borderWidth: 2,
-                        type: 'line',
-                        yAxisID: 'y1'
+                        label: 'Incorrect',
+                        data: [@string.Join(",", Model.QuestionStats.Select(q => q.IncorrectResponses))],
+                        backgroundColor: '#dc3545'
                     }
                 ]
             },
@@ -185,36 +186,28 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 scales: {
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        beginAtZero: true,
-                        max: 100,
-                        title: { display: true, text: 'Accuracy (%)' }
+                    x: {
+                        stacked: false
                     },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
+                    y: {
+                        stacked: false,
                         beginAtZero: true,
-                        title: { display: true, text: 'Time (s)' },
-                        grid: { drawOnChartArea: false }
+                        ticks: {
+                            stepSize: 1
+                        }
                     }
                 },
                 plugins: {
-                    legend: { display: true, position: 'top' },
-                    tooltip: { mode: 'index', intersect: false }
+                    title: {
+                        display: true,
+                        text: 'Correct vs Incorrect Responses by Question',
+                        font: { size: 16 }
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
         });
     </script>
 }
-
-<style>
-    .analytics-card {
-        transition: all .3s ease;
-    }
-    .analytics-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,.15) !important;
-    }
-</style>

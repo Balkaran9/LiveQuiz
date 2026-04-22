@@ -20,23 +20,22 @@ public class DashboardModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppP
 
         try
         {
-            var statsTask = dbContext.Quizzes
+            TotalQuizzes = await dbContext.Quizzes
                 .AsNoTracking()
                 .Where(q => q.OwnerUserId == userId.Value)
                 .CountAsync();
             
-            var gamesTask = dbContext.LiveGames
+            var games = await dbContext.LiveGames
                 .AsNoTracking()
                 .Where(g => g.HostUserId == userId.Value)
-                .Select(g => new 
-                { 
-                    g.LiveGameId, 
-                    g.Status, 
-                    ParticipantCount = g.Participants.Count 
-                })
+                .Include(g => g.Participants)
                 .ToListAsync();
 
-            var recentGamesTask = dbContext.LiveGames
+            TotalGames = games.Count;
+            TotalParticipants = games.Sum(g => g.Participants.Count);
+            ActiveGames = games.Count(g => g.Status != "Ended");
+
+            RecentGames = await dbContext.LiveGames
                 .AsNoTracking()
                 .Where(g => g.HostUserId == userId.Value)
                 .Include(g => g.Quiz)
@@ -53,20 +52,10 @@ public class DashboardModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppP
                 })
                 .ToListAsync();
 
-            await Task.WhenAll(statsTask, gamesTask, recentGamesTask);
-
-            TotalQuizzes = await statsTask;
-            var games = await gamesTask;
-            TotalGames = games.Count;
-            TotalParticipants = games.Sum(g => g.ParticipantCount);
-            ActiveGames = games.Count(g => g.Status != "Ended");
-            RecentGames = await recentGamesTask;
-
             return Page();
         }
         catch (Exception)
         {
-            // If there's any database error, return with default values
             TotalQuizzes = 0;
             TotalGames = 0;
             TotalParticipants = 0;

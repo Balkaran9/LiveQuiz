@@ -30,7 +30,6 @@ public class EditModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         Input = new InputModel
         {
             Title = quiz.Title,
-            Category = quiz.Category,
             IsPublic = quiz.IsPublic
         };
 
@@ -58,7 +57,6 @@ public class EditModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         }
 
         quiz.Title = Input.Title.Trim();
-        quiz.Category = Input.Category?.Trim();
         quiz.IsPublic = Input.IsPublic;
         await dbContext.SaveChangesAsync();
 
@@ -70,9 +68,6 @@ public class EditModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         [Required]
         [StringLength(200)]
         public string Title { get; set; } = string.Empty;
-
-        [StringLength(100)]
-        public string? Category { get; set; }
 
         public bool IsPublic { get; set; }
     }

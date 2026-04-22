@@ -10,6 +10,12 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="mb-3">
+        <label asp-for="Input.FullName" class="form-label"></label>
+        <input asp-for="Input.FullName" class="form-control" placeholder="Optional" />
+        <span asp-validation-for="Input.FullName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
         <label asp-for="Input.Username" class="form-label"></label>
         <input asp-for="Input.Username" class="form-control" />
         <span asp-validation-for="Input.Username" class="text-danger"></span>
@@ -17,7 +23,7 @@
 
     <div class="mb-3">
         <label asp-for="Input.Email" class="form-label"></label>
-        <input asp-for="Input.Email" class="form-control" type="email" placeholder="optional" />
+        <input asp-for="Input.Email" class="form-control" type="email" placeholder="Optional" />
         <span asp-validation-for="Input.Email" class="text-danger"></span>
     </div>
 
@@ -26,6 +32,12 @@
         <input asp-for="Input.Password" class="form-control" id="passwordInput" type="password" />
         <span asp-validation-for="Input.Password" class="text-danger"></span>
         <div id="passwordStrength" class="mt-1 small"></div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+        <input asp-for="Input.ConfirmPassword" class="form-control" type="password" />
+        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Create account</button>
@@ -45,12 +57,12 @@
                 if (pw.length >= 10) strength++;
                 if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) strength++;
                 if (/\d/.test(pw)) strength++;
-                if (/[@@$!%*?&#]/.test(pw)) strength++;
+                if (/[!?&#*]/.test(pw)) strength++;
 
                 const labels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
                 const colors = ['', 'danger', 'warning', 'info', 'success', 'success'];
-                pwStrength.className = strength > 0 ? `text-${colors[strength]} small` : '';
-                pwStrength.textContent = strength > 0 ? `Password Strength: ${labels[strength]}` : '';
+                pwStrength.className = strength > 0 ? 'text-' + colors[strength] + ' small' : '';
+                pwStrength.textContent = strength > 0 ? 'Password Strength: ' + labels[strength] : '';
             });
         }
     </script>
