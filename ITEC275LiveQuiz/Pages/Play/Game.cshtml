@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "{gameId:int}"
 @model ITEC275LiveQuiz.Pages.Play.GameModel
 @{
     ViewData["Title"] = "Live Game";
@@ -49,8 +49,7 @@ else
         <h3>@Model.Question?.QuestionText</h3>
     </div>
 
-    <form method="post" id="answerForm">
-        <input type="hidden" asp-for="GameId" value="@Model.Game.LiveGameId" />
+    <form method="post" asp-page="Game" asp-route-gameId="@Model.Game.LiveGameId" id="answerForm">
         <input type="hidden" asp-for="ElapsedMs" id="elapsedMs" value="0" />
         <div class="row g-3">
             @{ var idx = 0; }
