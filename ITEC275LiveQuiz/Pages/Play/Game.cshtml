@@ -59,8 +59,7 @@ else
                     <button type="submit"
                             class="btn answer-btn answer-btn-@(idx % 4) w-100"
                             name="SelectedAnswerId"
-                            value="@answer.AnswerId"
-                            style="cursor: pointer; pointer-events: auto;">
+                            value="@answer.AnswerId">
                         @answer.AnswerText
                     </button>
                 </div>
@@ -77,7 +76,7 @@ else
         const timeLimit = @(Model.Question?.TimeLimitSeconds ?? 30);
         const start = Date.now();
         const el = document.getElementById('timer');
-        const form = document.getElementById('answerForm');
+        const elapsedInput = document.getElementById('elapsedMs');
         
         if (el) {
             const iv = setInterval(() => {
@@ -91,25 +90,12 @@ else
             }, 500);
         }
         
-        if (form) {
-            console.log('Form found:', form);
-            
-            form.addEventListener('submit', function(e) {
+        if (elapsedInput) {
+            document.addEventListener('submit', function() {
                 const elapsedMs = Date.now() - start;
-                document.getElementById('elapsedMs').value = elapsedMs;
+                elapsedInput.value = elapsedMs;
                 console.log('Form submitting, elapsed:', elapsedMs);
             });
-            
-            const buttons = form.querySelectorAll('button[type="submit"]');
-            console.log('Found', buttons.length, 'answer buttons');
-            
-            buttons.forEach((btn, index) => {
-                btn.addEventListener('click', function(e) {
-                    console.log('Button', index, 'clicked, value:', this.value);
-                });
-            });
-        } else {
-            console.error('Form not found!');
         }
     </script>
 }

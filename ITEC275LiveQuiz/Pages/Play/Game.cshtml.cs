@@ -134,26 +134,10 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
                     dbContext.LiveResponses.Add(response);
                     await dbContext.SaveChangesAsync();
-                    alreadyAnswered = true;
                 }
             }
 
-            Game = game;
-            Participant = await dbContext.LiveParticipants
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.LiveParticipantId == participantId.Value && p.LiveGameId == GameId);
-            
-            CurrentQuestion = liveQuestion;
-            Question = liveQuestion.Question;
-            Answers = await dbContext.Answers
-                .AsNoTracking()
-                .Where(a => a.QuestionId == liveQuestion.QuestionId)
-                .OrderBy(a => a.AnswerId)
-                .ToListAsync();
-            AlreadyAnswered = alreadyAnswered;
-            GameEnded = false;
-
-            return Page();
+            return RedirectToPage("Game", new { gameId = GameId });
         }
         catch (Exception ex)
         {
