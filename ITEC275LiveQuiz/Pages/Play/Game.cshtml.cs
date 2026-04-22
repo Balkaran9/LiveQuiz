@@ -136,7 +136,17 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                 }
             }
 
-            return RedirectToPage("Game", new { gameId = GameId });
+            Game = game;
+            Participant = await dbContext.LiveParticipants
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.LiveParticipantId == participantId.Value);
+            
+            CurrentQuestion = liveQuestion;
+            Question = liveQuestion.Question;
+            AlreadyAnswered = true;
+            GameEnded = false;
+
+            return Page();
         }
         catch (Exception)
         {
