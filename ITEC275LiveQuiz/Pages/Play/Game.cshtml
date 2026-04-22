@@ -1,4 +1,4 @@
-﻿@page "{gameId:int?}"
+﻿@page
 @model ITEC275LiveQuiz.Pages.Play.GameModel
 @{
     ViewData["Title"] = "Live Game";
@@ -19,23 +19,23 @@ else if (Model.GameEnded)
 }
 else if (Model.CurrentQuestion is null)
 {
-    <meta http-equiv="refresh" content="3">
+    <meta http-equiv="refresh" content="4">
     <div class="waiting-screen">
         <h2>@Model.Game.Quiz?.Title</h2>
         <p class="lead text-muted">Waiting for the next question...</p>
         <p>Playing as <span class="badge bg-primary fs-6">@Model.Participant?.Nickname</span></p>
         <div class="spinner-border text-primary mt-3" role="status"><span class="visually-hidden">Loading...</span></div>
-        <p class="text-muted mt-3"><small>Auto-refreshing every 3 seconds</small></p>
+        <p class="text-muted mt-3"><small>Auto-refreshing every 4 seconds</small></p>
     </div>
 }
 else if (Model.AlreadyAnswered)
 {
-    <meta http-equiv="refresh" content="2">
+    <meta http-equiv="refresh" content="4">
     <div class="waiting-screen">
         <h2>Answer Submitted!</h2>
         <p class="lead text-muted">Waiting for the host to close the question...</p>
         <div class="spinner-border text-success mt-3" role="status"><span class="visually-hidden">Loading...</span></div>
-        <p class="text-muted mt-3"><small>Auto-refreshing every 2 seconds</small></p>
+        <p class="text-muted mt-3"><small>Auto-refreshing every 4 seconds</small></p>
     </div>
 }
 else
@@ -49,32 +49,26 @@ else
         <h3>@Model.Question?.QuestionText</h3>
     </div>
 
-    <!-- Answer buttons screen -->
-    <div id="answersDiv">
+    <form method="post" id="answerForm">
+        <input type="hidden" asp-for="GameId" value="@Model.Game.LiveGameId" />
+        <input type="hidden" asp-for="ElapsedMs" id="elapsedMs" value="0" />
         <div class="row g-3">
             @{ var idx = 0; }
             @foreach (var answer in Model.Answers)
             {
                 <div class="col-md-6">
-                    <button type="button"
-                            class="btn answer-btn answer-btn-@(idx % 4) w-100 answer-button"
-                            data-answer-id="@answer.AnswerId"
-                            style="min-height:80px; font-size:1.1rem; font-weight:700;">
+                    <button type="submit"
+                            class="btn answer-btn answer-btn-@(idx % 4) w-100"
+                            name="SelectedAnswerId"
+                            value="@answer.AnswerId"
+                            onclick="setElapsed()">
                         @answer.AnswerText
                     </button>
                 </div>
                 idx++;
             }
         </div>
-    </div>
-
-    <!-- Answer submitted screen (hidden initially) -->
-    <div id="submittedDiv" style="display:none;" class="waiting-screen">
-        <h2>Answer Submitted!</h2>
-        <p class="lead text-muted">Waiting for the host to close the question...</p>
-        <div class="spinner-border text-success mt-3" role="status"><span class="visually-hidden">Loading...</span></div>
-        <p class="text-muted mt-3"><small>Page will refresh automatically</small></p>
-    </div>
+    </form>
 }
 
 @section Scripts {
@@ -82,10 +76,6 @@ else
         const timeLimit = @(Model.Question?.TimeLimitSeconds ?? 30);
         const start = Date.now();
         const el = document.getElementById('timer');
-        const gameId = @(Model.Game?.LiveGameId ?? 0);
-        const participantId = @(Model.Participant?.LiveParticipantId ?? 0);
-        const liveQuestionId = @(Model.CurrentQuestion?.LiveQuestionId ?? 0);
-
         if (el) {
             const iv = setInterval(() => {
                 const secs = Math.max(0, timeLimit - Math.floor((Date.now() - start) / 1000));
@@ -94,37 +84,8 @@ else
                 if (secs === 0) clearInterval(iv);
             }, 500);
         }
-
-        const buttons = document.querySelectorAll('.answer-button');
-
-        buttons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                const answerId = this.getAttribute('data-answer-id');
-                const elapsedMs = Date.now() - start;
-
-                // 1. IMMEDIATELY show submitted screen
-                document.getElementById('answersDiv').style.display = 'none';
-                document.getElementById('submittedDiv').style.display = 'block';
-
-                // 2. Submit with all IDs embedded - no session needed
-                const formData = new FormData();
-                formData.append('SelectedAnswerId', answerId);
-                formData.append('ElapsedMs', elapsedMs);
-                formData.append('GameId', gameId);
-                formData.append('ParticipantId', participantId);
-                formData.append('LiveQuestionId', liveQuestionId);
-
-                fetch('/Play/Game/' + gameId, {
-                    method: 'POST',
-                    body: formData
-                }).then(function(response) {
-                    console.log('POST response:', response.status);
-                    setTimeout(function() { window.location.reload(); }, 1500);
-                }).catch(function(err) {
-                    console.error('Submit error:', err);
-                    setTimeout(function() { window.location.reload(); }, 1500);
-                });
-            });
-        });
+        function setElapsed() {
+            document.getElementById('elapsedMs').value = Date.now() - start;
+        }
     </script>
 }
