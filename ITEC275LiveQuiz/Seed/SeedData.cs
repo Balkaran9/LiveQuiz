@@ -29,7 +29,8 @@ public static class SeedData
         var quiz = new Quiz
         {
             OwnerUserId = demoUser.UserId,
-            Title = "Demo Quiz - General Knowledge",
+            Title = "Hilarious World History",
+            Category = "History",
             IsPublic = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -39,21 +40,21 @@ public static class SeedData
 
         var questions = new (string QuestionText, int TimeLimitSeconds, string[] Answers, int CorrectIndex)[]
         {
-            ("What does CPU stand for?", 20, ["Central Processing Unit", "Computer Primary Unit", "Central Program Utility", "Core Processing User"], 0),
-            ("Which company developed C#?", 20, ["Apple", "Microsoft", "Oracle", "Google"], 1),
-            ("What HTML tag is used for the largest heading?", 20, ["<head>", "<heading>", "<h1>", "<title>"], 2),
-            ("Which SQL statement is used to retrieve data?", 20, ["GET", "SELECT", "FETCH", "READ"], 1),
-            ("What port does HTTPS use by default?", 20, ["80", "21", "443", "25"], 2),
-            ("Which keyword creates a class instance in C#?", 20, ["make", "new", "create", "instance"], 1),
-            ("What does CSS stand for?", 20, ["Creative Style Sheets", "Computer Style Syntax", "Cascading Style Sheets", "Colorful Style System"], 2),
-            ("Which database is used in this project plan?", 20, ["MySQL", "SQL Server", "SQLite", "PostgreSQL"], 1),
-            ("What symbol starts a Razor expression?", 20, ["#", "@", "$", "%"], 1),
-            ("Which method saves EF Core changes?", 20, ["CommitAsync", "ApplyChanges", "SaveChangesAsync", "WriteAsync"], 2),
-            ("What collection type stores multiple related entities?", 20, ["ICollection", "decimal", "DateTime", "Guid"], 0),
-            ("Which ASP.NET Core feature stores per-user temporary data here?", 20, ["Cookies only", "Session", "SignalR", "Temp files"], 1),
-            ("What does FK mean in database design?", 20, ["Fast Key", "Foreign Key", "File Key", "Fixed Key"], 1),
-            ("Which LINQ method filters a sequence?", 20, ["Select", "OrderBy", "Where", "GroupBy"], 2),
-            ("What is the default file extension for Razor Pages views?", 20, [".razor", ".cshtml", ".html", ".aspx"], 1)
+            ("What did Napoleon Bonaparte ACTUALLY fear the most?", 20, ["Heights", "Cats", "Water", "Thunder"], 1),
+            ("Which ancient civilization invented the first vending machine?", 20, ["Romans", "Greeks", "Egyptians", "Chinese"], 1),
+            ("What bizarre item did the ancient Egyptians use as currency?", 20, ["Teeth", "Onions", "Stones", "Feathers"], 1),
+            ("Who was the shortest serving British Prime Minister ever?", 20, ["Lasted 2 days", "Lasted 119 days", "Lasted 1 hour", "Never took office"], 1),
+            ("What did Albert Einstein's last words go unrecorded?", 20, ["Nurse didn't speak German", "He whispered", "He was asleep", "He forgot"], 0),
+            ("In 1919, what strange disaster killed 21 people in Boston?", 20, ["Molasses flood", "Cheese avalanche", "Milk tsunami", "Butter explosion"], 0),
+            ("What did ancient Roman gladiators endorse?", 20, ["Chariots", "Olive oil like athletes", "Wine", "Sandals"], 1),
+            ("Who once declared war on Neptune (the sea)?", 20, ["Julius Caesar", "Caligula", "Nero", "Augustus"], 1),
+            ("What did Thomas Edison's last breath get preserved in?", 20, ["A test tube by Henry Ford", "A bottle", "A balloon", "Nothing"], 0),
+            ("In medieval times, what did people believe caused the Black Plague?", 20, ["Bad smells", "Cats", "The moon", "Loud noises"], 0),
+            ("What animal did Andrew Jackson keep in the White House?", 20, ["Alligator", "Lion", "Bear", "Elephant"], 0),
+            ("What did Vikings use as primitive sunglasses?", 20, ["Walrus ivory", "Wood", "Leather", "Nothing"], 0),
+            ("Who sold the Eiffel Tower twice to scrap metal dealers?", 20, ["Victor Lustig", "Gustave Eiffel", "Napoleon III", "Charles de Gaulle"], 0),
+            ("What did ancient Assyrians believe caused headaches?", 20, ["Evil spirits", "Bad food", "Lack of sleep", "Stress"], 0),
+            ("What did Cleopatra reportedly bathe in to stay beautiful?", 20, ["Milk and honey", "Wine", "Rose water", "Olive oil"], 0)
         };
 
         var sortOrder = 1;
