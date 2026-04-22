@@ -54,9 +54,8 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(4);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = builder.Environment.IsProduction() 
-        ? CookieSecurePolicy.Always 
-        : CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
 var app = builder.Build();
