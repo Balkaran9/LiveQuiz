@@ -48,7 +48,7 @@ public abstract class AppPageModel : PageModel
             {
                 Expires = DateTimeOffset.UtcNow.AddHours(24),
                 HttpOnly = true,
-                Secure = true,
+                Secure = false,  // Changed from true - Railway uses HTTP behind proxy
                 SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax
             }
         );

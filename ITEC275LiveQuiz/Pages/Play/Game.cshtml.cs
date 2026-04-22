@@ -79,34 +79,61 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
     public async Task<IActionResult> OnPostAsync(int gameId)
     {
+        // Add detailed logging
+        Console.WriteLine($"=== OnPostAsync Called ===");
+        Console.WriteLine($"GameId from route: {gameId}");
+        Console.WriteLine($"selectedAnswerId: {selectedAnswerId}");
+        Console.WriteLine($"elapsedMs: {elapsedMs}");
+        
         var participantId = GetParticipantId(gameId);
-        if (!participantId.HasValue) 
+        Console.WriteLine($"ParticipantId from session/cookie: {participantId}");
+        
+        if (!participantId.HasValue)
+        {
+            Console.WriteLine("ERROR: ParticipantId is null - redirecting to Join");
             return RedirectToPage("Join");
+        }
 
         try
         {
             if (selectedAnswerId <= 0)
+            {
+                Console.WriteLine($"ERROR: Invalid selectedAnswerId: {selectedAnswerId}");
                 return RedirectToPage("Game", new { gameId = gameId });
+            }
 
             var liveQuestion = await dbContext.LiveQuestions
                 .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
 
-            if (liveQuestion is null) 
+            if (liveQuestion is null)
+            {
+                Console.WriteLine($"ERROR: No open live question found for gameId: {gameId}");
                 return RedirectToPage("Game", new { gameId = gameId });
+            }
+            
+            Console.WriteLine($"Found liveQuestion: {liveQuestion.LiveQuestionId}");
 
             var alreadyAnswered = await dbContext.LiveResponses
                 .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
                            && r.LiveParticipantId == participantId.Value);
 
             if (alreadyAnswered)
+            {
+                Console.WriteLine("Already answered this question");
                 return RedirectToPage("Game", new { gameId = gameId });
+            }
 
             var answer = await dbContext.Answers
                 .FirstOrDefaultAsync(a => a.AnswerId == selectedAnswerId
                                        && a.QuestionId == liveQuestion.QuestionId);
 
             if (answer is null)
+            {
+                Console.WriteLine($"ERROR: Answer not found for answerId: {selectedAnswerId}, questionId: {liveQuestion.QuestionId}");
                 return RedirectToPage("Game", new { gameId = gameId });
+            }
+            
+            Console.WriteLine($"Found answer: {answer.AnswerId}, IsCorrect: {answer.IsCorrect}");
 
             var response = new LiveResponse
             {
@@ -121,6 +148,8 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
             dbContext.LiveResponses.Add(response);
             await dbContext.SaveChangesAsync();
             
+            Console.WriteLine($"SUCCESS: Saved LiveResponse - QuestionId: {liveQuestion.LiveQuestionId}, ParticipantId: {participantId.Value}, AnswerId: {answer.AnswerId}");
+            
             // Small delay to ensure database commit is complete
             await Task.Delay(100);
 
@@ -128,7 +157,7 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in OnPostAsync: {ex.Message}\n{ex.StackTrace}");
+            Console.WriteLine($"EXCEPTION in OnPostAsync: {ex.Message}\n{ex.StackTrace}");
             return RedirectToPage("Game", new { gameId = gameId });
         }
     }
