@@ -14,6 +14,7 @@ public class Quiz
     [MaxLength(100)]
     public string? Category { get; set; }
     public bool IsPublic { get; set; }
+    public bool ShuffleQuestions { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User? OwnerUser { get; set; }
