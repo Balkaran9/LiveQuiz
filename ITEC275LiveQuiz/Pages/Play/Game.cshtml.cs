@@ -17,13 +17,13 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
     public LiveResponse? LastResponse { get; set; }
 
     [BindProperty]
-    public int SelectedAnswerId { get; set; }
+    public int selectedAnswerId { get; set; }
 
     [BindProperty]
-    public int ElapsedMs { get; set; }
+    public int elapsedMs { get; set; }
 
     [BindProperty]
-    public int GameId { get; set; }
+    public int gameId { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int gameId)
     {
@@ -50,7 +50,6 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         }
 
         GameEnded = Game.Status == "Ended";
-        GameId = gameId;
 
         if (!GameEnded)
         {
@@ -80,52 +79,56 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
     public async Task<IActionResult> OnPostAsync(int gameId)
     {
-        GameId = gameId;
         var participantId = GetParticipantId(gameId);
-        if (!participantId.HasValue) return RedirectToPage("Join");
+        if (!participantId.HasValue) 
+            return RedirectToPage("Join");
 
         try
         {
+            if (selectedAnswerId <= 0)
+                return RedirectToPage("Game", new { gameId = gameId });
+
             var liveQuestion = await dbContext.LiveQuestions
                 .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
 
-            if (liveQuestion is null) return RedirectToPage("Game", new { gameId = gameId });
+            if (liveQuestion is null) 
+                return RedirectToPage("Game", new { gameId = gameId });
 
             var alreadyAnswered = await dbContext.LiveResponses
                 .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
                            && r.LiveParticipantId == participantId.Value);
 
-            if (!alreadyAnswered && SelectedAnswerId > 0)
+            if (alreadyAnswered)
+                return RedirectToPage("Game", new { gameId = gameId });
+
+            var answer = await dbContext.Answers
+                .FirstOrDefaultAsync(a => a.AnswerId == selectedAnswerId
+                                       && a.QuestionId == liveQuestion.QuestionId);
+
+            if (answer is null)
+                return RedirectToPage("Game", new { gameId = gameId });
+
+            var response = new LiveResponse
             {
-                var answer = await dbContext.Answers
-                    .FirstOrDefaultAsync(a => a.AnswerId == SelectedAnswerId
-                                           && a.QuestionId == liveQuestion.QuestionId);
+                LiveQuestionId = liveQuestion.LiveQuestionId,
+                LiveParticipantId = participantId.Value,
+                AnswerId = answer.AnswerId,
+                AnsweredAt = DateTime.UtcNow,
+                IsCorrect = answer.IsCorrect,
+                TimeMs = Math.Max(0, elapsedMs)
+            };
 
-                if (answer is not null)
-                {
-                    var response = new LiveResponse
-                    {
-                        LiveQuestionId = liveQuestion.LiveQuestionId,
-                        LiveParticipantId = participantId.Value,
-                        AnswerId = answer.AnswerId,
-                        AnsweredAt = DateTime.UtcNow,
-                        IsCorrect = answer.IsCorrect,
-                        TimeMs = Math.Max(0, ElapsedMs)
-                    };
-
-                    dbContext.LiveResponses.Add(response);
-                    await dbContext.SaveChangesAsync();
-                    
-                    // Small delay to ensure database commit is complete
-                    await Task.Delay(100);
-                }
-            }
+            dbContext.LiveResponses.Add(response);
+            await dbContext.SaveChangesAsync();
+            
+            // Small delay to ensure database commit is complete
+            await Task.Delay(100);
 
             return RedirectToPage("Game", new { gameId = gameId });
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}\n{ex.StackTrace}");
+            System.Diagnostics.Debug.WriteLine($"Error in OnPostAsync: {ex.Message}\n{ex.StackTrace}");
             return RedirectToPage("Game", new { gameId = gameId });
         }
     }

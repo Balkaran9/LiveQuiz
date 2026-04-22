@@ -49,18 +49,17 @@ else
         <h3>@Model.Question?.QuestionText</h3>
     </div>
 
-    <form method="post" asp-page="Game" asp-route-gameId="@Model.Game.LiveGameId" id="answerForm">
-        <input type="hidden" asp-for="ElapsedMs" id="elapsedMs" value="0" />
+    <form method="post" id="answerForm">
+        <input type="hidden" name="selectedAnswerId" id="selectedAnswerId" />
+        <input type="hidden" name="elapsedMs" id="elapsedMs" value="0" />
         <div class="row g-3">
             @{ var idx = 0; }
             @foreach (var answer in Model.Answers)
             {
                 <div class="col-md-6">
-                    <button type="submit"
+                    <button type="button"
                             class="btn answer-btn answer-btn-@(idx % 4) w-100"
-                            name="SelectedAnswerId"
-                            value="@answer.AnswerId"
-                            onclick="setElapsed()">
+                            onclick="submitAnswer(@answer.AnswerId)">
                         @answer.AnswerText
                     </button>
                 </div>
@@ -83,8 +82,10 @@ else
                 if (secs === 0) clearInterval(iv);
             }, 500);
         }
-        function setElapsed() {
+        function submitAnswer(answerId) {
+            document.getElementById('selectedAnswerId').value = answerId;
             document.getElementById('elapsedMs').value = Date.now() - start;
+            document.getElementById('answerForm').submit();
         }
     </script>
 }
