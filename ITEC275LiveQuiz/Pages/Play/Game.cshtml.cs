@@ -26,6 +26,12 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
     [BindProperty]
     public int GameId { get; set; }
 
+    [BindProperty]
+    public int ParticipantId { get; set; }
+
+    [BindProperty]
+    public int LiveQuestionId { get; set; }
+
     public async Task<IActionResult> OnGetAsync(int gameId)
     {
         System.Diagnostics.Debug.WriteLine($"GET: Loading game {gameId}");
@@ -108,47 +114,59 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
     public async Task<IActionResult> OnPostAsync(int gameId)
     {
         GameId = gameId;
-        var participantId = GetParticipantId(GameId);
-        if (!participantId.HasValue) return RedirectToPage("Join");
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"POST: Player {participantId} submitting answer {SelectedAnswerId} for game {gameId}");
-            
+            // Use ParticipantId sent directly from the page (no session needed)
+            int participantId = ParticipantId;
+
+            // Fallback to session/cookie if not sent
+            if (participantId <= 0)
+            {
+                var fromSession = GetParticipantId(GameId);
+                if (!fromSession.HasValue)
+                {
+                    return RedirectToPage("Join");
+                }
+                participantId = fromSession.Value;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"POST: ParticipantId={participantId}, AnswerId={SelectedAnswerId}, GameId={GameId}");
+
             var game = await dbContext.LiveGames
                 .AsNoTracking()
-                .Include(g => g.Quiz)
                 .FirstOrDefaultAsync(g => g.LiveGameId == GameId);
 
-            if (game is null)
-            {
-                System.Diagnostics.Debug.WriteLine("POST: Game not found");
-                return RedirectToPage("Join");
-            }
-            
-            if (game.Status == "Ended")
-            {
-                System.Diagnostics.Debug.WriteLine("POST: Game has ended");
+            if (game is null || game.Status == "Ended")
                 return RedirectToPage("Stats", new { gameId = GameId });
-            }
 
-            var liveQuestion = await dbContext.LiveQuestions
-                .AsNoTracking()
-                .Include(lq => lq.Question)
-                .FirstOrDefaultAsync(lq => lq.LiveGameId == GameId && lq.ClosedAt == null);
+            // Use the LiveQuestionId sent from page if available, else look it up
+            LiveQuestion? liveQuestion = null;
+            if (LiveQuestionId > 0)
+            {
+                liveQuestion = await dbContext.LiveQuestions
+                    .AsNoTracking()
+                    .Include(lq => lq.Question)
+                    .FirstOrDefaultAsync(lq => lq.LiveQuestionId == LiveQuestionId && lq.LiveGameId == GameId);
+            }
 
             if (liveQuestion is null)
             {
-                System.Diagnostics.Debug.WriteLine("POST: No open question found");
-                return RedirectToPage("Game", new { gameId = GameId });
+                liveQuestion = await dbContext.LiveQuestions
+                    .AsNoTracking()
+                    .Include(lq => lq.Question)
+                    .FirstOrDefaultAsync(lq => lq.LiveGameId == GameId && lq.ClosedAt == null);
             }
+
+            if (liveQuestion is null)
+                return RedirectToPage("Game", new { gameId = GameId });
 
             var alreadyAnswered = await dbContext.LiveResponses
                 .AsNoTracking()
                 .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
-                           && r.LiveParticipantId == participantId.Value);
+                           && r.LiveParticipantId == participantId);
 
-            System.Diagnostics.Debug.WriteLine($"POST: Already answered = {alreadyAnswered}, SelectedId = {SelectedAnswerId}");
+            System.Diagnostics.Debug.WriteLine($"POST: AlreadyAnswered={alreadyAnswered}, SelectedId={SelectedAnswerId}");
 
             if (!alreadyAnswered && SelectedAnswerId > 0)
             {
@@ -159,29 +177,18 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
 
                 if (answer is not null)
                 {
-                    var response = new LiveResponse
+                    dbContext.LiveResponses.Add(new LiveResponse
                     {
                         LiveQuestionId = liveQuestion.LiveQuestionId,
-                        LiveParticipantId = participantId.Value,
+                        LiveParticipantId = participantId,
                         AnswerId = answer.AnswerId,
                         AnsweredAt = DateTime.UtcNow,
                         IsCorrect = answer.IsCorrect,
                         TimeMs = Math.Max(0, ElapsedMs)
-                    };
-
-                    dbContext.LiveResponses.Add(response);
+                    });
                     await dbContext.SaveChangesAsync();
-                    
-                    System.Diagnostics.Debug.WriteLine($"POST: Answer saved successfully!");
+                    System.Diagnostics.Debug.WriteLine($"POST: Answer saved! Correct={answer.IsCorrect}");
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"POST: Answer {SelectedAnswerId} not found for question {liveQuestion.QuestionId}");
-                }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("POST: Skipping save - already answered or no answer selected");
             }
 
             return RedirectToPage("Game", new { gameId = GameId });
@@ -189,7 +196,6 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"POST ERROR: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"POST ERROR Stack: {ex.StackTrace}");
             return RedirectToPage("Game", new { gameId = GameId });
         }
     }

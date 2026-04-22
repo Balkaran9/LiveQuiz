@@ -83,6 +83,8 @@ else
         const start = Date.now();
         const el = document.getElementById('timer');
         const gameId = @(Model.Game?.LiveGameId ?? 0);
+        const participantId = @(Model.Participant?.LiveParticipantId ?? 0);
+        const liveQuestionId = @(Model.CurrentQuestion?.LiveQuestionId ?? 0);
 
         if (el) {
             const iv = setInterval(() => {
@@ -104,35 +106,25 @@ else
                 document.getElementById('answersDiv').style.display = 'none';
                 document.getElementById('submittedDiv').style.display = 'block';
 
-                // 2. Submit answer, THEN reload after confirmed
+                // 2. Submit with all IDs embedded - no session needed
                 const formData = new FormData();
                 formData.append('SelectedAnswerId', answerId);
                 formData.append('ElapsedMs', elapsedMs);
                 formData.append('GameId', gameId);
+                formData.append('ParticipantId', participantId);
+                formData.append('LiveQuestionId', liveQuestionId);
 
                 fetch('/Play/Game/' + gameId, {
                     method: 'POST',
                     body: formData
                 }).then(function(response) {
                     console.log('POST response:', response.status);
-                    // Wait 1 second after save confirmed, then reload
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 1000);
+                    setTimeout(function() { window.location.reload(); }, 1500);
                 }).catch(function(err) {
                     console.error('Submit error:', err);
-                    // Still reload even on error
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 1000);
+                    setTimeout(function() { window.location.reload(); }, 1500);
                 });
             });
         });
-
-        function pollForNextQuestion() {
-            setTimeout(function() {
-                window.location.reload();
-            }, 3000);
-        }
     </script>
 }
