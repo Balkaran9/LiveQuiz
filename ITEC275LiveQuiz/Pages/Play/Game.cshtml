@@ -49,22 +49,27 @@ else
         <h3>@Model.Question?.QuestionText</h3>
     </div>
 
-    <form method="post" asp-page="/Play/Game" asp-route-gameId="@Model.Game.LiveGameId" id="answerForm">
-        <input type="hidden" asp-for="ElapsedMs" id="elapsedMs" value="0" />
+    <form method="post" id="answerForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="elapsedMs" value="0" />
+        <input type="hidden" id="selectedAnswerId" value="0" />
         <div class="row g-3">
             @{ var idx = 0; }
             @foreach (var answer in Model.Answers)
             {
                 <div class="col-md-6">
-                    <button type="submit"
-                            class="btn answer-btn answer-btn-@(idx % 4) w-100"
-                            name="SelectedAnswerId"
-                            value="@answer.AnswerId">
+                    <button type="button"
+                            class="btn answer-btn answer-btn-@(idx % 4) w-100 answer-button"
+                            data-answer-id="@answer.AnswerId">
                         @answer.AnswerText
                     </button>
                 </div>
                 idx++;
             }
+        </div>
+        <div id="submitStatus" class="mt-3 text-center" style="display:none;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Submitting your answer...</p>
         </div>
     </form>
 }
@@ -76,7 +81,6 @@ else
         const timeLimit = @(Model.Question?.TimeLimitSeconds ?? 30);
         const start = Date.now();
         const el = document.getElementById('timer');
-        const elapsedInput = document.getElementById('elapsedMs');
         
         if (el) {
             const iv = setInterval(() => {
@@ -90,12 +94,56 @@ else
             }, 500);
         }
         
-        if (elapsedInput) {
-            document.addEventListener('submit', function() {
+        const buttons = document.querySelectorAll('.answer-button');
+        const gameId = @Model.Game.LiveGameId;
+        
+        buttons.forEach(button => {
+            button.addEventListener('click', async function() {
+                const answerId = this.getAttribute('data-answer-id');
                 const elapsedMs = Date.now() - start;
-                elapsedInput.value = elapsedMs;
-                console.log('Form submitting, elapsed:', elapsedMs);
+                
+                console.log('Button clicked! AnswerId:', answerId, 'Elapsed:', elapsedMs);
+                
+                // Disable all buttons
+                buttons.forEach(btn => btn.disabled = true);
+                
+                // Show loading
+                document.getElementById('submitStatus').style.display = 'block';
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('SelectedAnswerId', answerId);
+                    formData.append('ElapsedMs', elapsedMs);
+                    formData.append('GameId', gameId);
+                    
+                    console.log('Submitting to /Play/Game/' + gameId);
+                    
+                    const response = await fetch('/Play/Game/' + gameId, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    
+                    if (response.ok) {
+                        console.log('Success! Redirecting...');
+                        window.location.href = '/Play/Game/' + gameId;
+                    } else {
+                        console.error('Server error:', response.status);
+                        alert('Error submitting answer. Please try again.');
+                        buttons.forEach(btn => btn.disabled = false);
+                        document.getElementById('submitStatus').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    alert('Network error. Please check your connection.');
+                    buttons.forEach(btn => btn.disabled = false);
+                    document.getElementById('submitStatus').style.display = 'none';
+                }
             });
-        }
+        });
     </script>
 }
