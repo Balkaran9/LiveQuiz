@@ -88,51 +88,58 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         var participantId = GetParticipantId(GameId);
         if (!participantId.HasValue) return RedirectToPage("Join");
 
-        var game = await dbContext.LiveGames
-            .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.LiveGameId == GameId);
-
-        if (game is null || game.Status == "Ended")
+        try
         {
-            return RedirectToPage("Stats", new { gameId = GameId });
-        }
-
-        var liveQuestion = await dbContext.LiveQuestions
-            .AsNoTracking()
-            .Include(lq => lq.Question)
-            .FirstOrDefaultAsync(lq => lq.LiveGameId == GameId && lq.ClosedAt == null);
-
-        if (liveQuestion is null) return RedirectToPage("Game", new { gameId = GameId });
-
-        var alreadyAnswered = await dbContext.LiveResponses
-            .AsNoTracking()
-            .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
-                       && r.LiveParticipantId == participantId.Value);
-
-        if (!alreadyAnswered)
-        {
-            var answer = await dbContext.Answers
+            var game = await dbContext.LiveGames
                 .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.AnswerId == SelectedAnswerId
-                                       && a.QuestionId == liveQuestion.QuestionId);
+                .FirstOrDefaultAsync(g => g.LiveGameId == GameId);
 
-            if (answer is not null)
+            if (game is null || game.Status == "Ended")
             {
-                var response = new LiveResponse
-                {
-                    LiveQuestionId = liveQuestion.LiveQuestionId,
-                    LiveParticipantId = participantId.Value,
-                    AnswerId = answer.AnswerId,
-                    AnsweredAt = DateTime.UtcNow,
-                    IsCorrect = answer.IsCorrect,
-                    TimeMs = Math.Max(0, ElapsedMs)
-                };
-
-                dbContext.LiveResponses.Add(response);
-                await dbContext.SaveChangesAsync();
+                return RedirectToPage("Stats", new { gameId = GameId });
             }
-        }
 
-        return RedirectToPage("Game", new { gameId = GameId });
+            var liveQuestion = await dbContext.LiveQuestions
+                .AsNoTracking()
+                .Include(lq => lq.Question)
+                .FirstOrDefaultAsync(lq => lq.LiveGameId == GameId && lq.ClosedAt == null);
+
+            if (liveQuestion is null) return RedirectToPage("Game", new { gameId = GameId });
+
+            var alreadyAnswered = await dbContext.LiveResponses
+                .AsNoTracking()
+                .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
+                           && r.LiveParticipantId == participantId.Value);
+
+            if (!alreadyAnswered)
+            {
+                var answer = await dbContext.Answers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.AnswerId == SelectedAnswerId
+                                           && a.QuestionId == liveQuestion.QuestionId);
+
+                if (answer is not null)
+                {
+                    var response = new LiveResponse
+                    {
+                        LiveQuestionId = liveQuestion.LiveQuestionId,
+                        LiveParticipantId = participantId.Value,
+                        AnswerId = answer.AnswerId,
+                        AnsweredAt = DateTime.UtcNow,
+                        IsCorrect = answer.IsCorrect,
+                        TimeMs = Math.Max(0, ElapsedMs)
+                    };
+
+                    dbContext.LiveResponses.Add(response);
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+
+            return RedirectToPage("Game", new { gameId = GameId });
+        }
+        catch (Exception)
+        {
+            return RedirectToPage("Game", new { gameId = GameId });
+        }
     }
 }

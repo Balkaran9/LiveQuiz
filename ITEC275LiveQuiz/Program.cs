@@ -3,13 +3,14 @@ using ITEC275LiveQuiz.Seed;
 using ITEC275LiveQuiz.Services;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Force Production environment in Railway
-if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL")))
+// Force Production environment when DATABASE_URL exists (Railway deployment)
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(databaseUrl))
 {
-    builder.Environment.EnvironmentName = "Production";
+    Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
 }
+
+var builder = WebApplication.CreateBuilder(args);
 
 // Configure Railway port
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
@@ -20,8 +21,6 @@ builder.Services.AddRazorPages();
 // Database configuration with Railway PostgreSQL support
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-    
     if (!string.IsNullOrEmpty(databaseUrl))
     {
         // Railway PostgreSQL connection
