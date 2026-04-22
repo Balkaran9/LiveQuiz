@@ -78,47 +78,56 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync(int gameId)
     {
-        var participantId = GetParticipantId(GameId);
+        GameId = gameId;
+        var participantId = GetParticipantId(gameId);
         if (!participantId.HasValue) return RedirectToPage("Join");
 
-        var liveQuestion = await dbContext.LiveQuestions
-            .AsNoTracking()
-            .Include(lq => lq.Question)
-            .FirstOrDefaultAsync(lq => lq.LiveGameId == GameId && lq.ClosedAt == null);
-
-        if (liveQuestion is null) return RedirectToPage("Game", new { gameId = GameId });
-
-        var alreadyAnswered = await dbContext.LiveResponses
-            .AsNoTracking()
-            .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
-                       && r.LiveParticipantId == participantId.Value);
-
-        if (!alreadyAnswered)
+        try
         {
-            var answer = await dbContext.Answers
+            var liveQuestion = await dbContext.LiveQuestions
                 .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.AnswerId == SelectedAnswerId
-                                       && a.QuestionId == liveQuestion.QuestionId);
+                .Include(lq => lq.Question)
+                .FirstOrDefaultAsync(lq => lq.LiveGameId == gameId && lq.ClosedAt == null);
 
-            if (answer is not null)
+            if (liveQuestion is null) return RedirectToPage("Game", new { gameId = gameId });
+
+            var alreadyAnswered = await dbContext.LiveResponses
+                .AsNoTracking()
+                .AnyAsync(r => r.LiveQuestionId == liveQuestion.LiveQuestionId
+                           && r.LiveParticipantId == participantId.Value);
+
+            if (!alreadyAnswered && SelectedAnswerId > 0)
             {
-                var response = new LiveResponse
+                var answer = await dbContext.Answers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.AnswerId == SelectedAnswerId
+                                           && a.QuestionId == liveQuestion.QuestionId);
+
+                if (answer is not null)
                 {
-                    LiveQuestionId = liveQuestion.LiveQuestionId,
-                    LiveParticipantId = participantId.Value,
-                    AnswerId = answer.AnswerId,
-                    AnsweredAt = DateTime.UtcNow,
-                    IsCorrect = answer.IsCorrect,
-                    TimeMs = Math.Max(0, ElapsedMs)
-                };
+                    var response = new LiveResponse
+                    {
+                        LiveQuestionId = liveQuestion.LiveQuestionId,
+                        LiveParticipantId = participantId.Value,
+                        AnswerId = answer.AnswerId,
+                        AnsweredAt = DateTime.UtcNow,
+                        IsCorrect = answer.IsCorrect,
+                        TimeMs = Math.Max(0, ElapsedMs)
+                    };
 
-                dbContext.LiveResponses.Add(response);
-                await dbContext.SaveChangesAsync();
+                    dbContext.LiveResponses.Add(response);
+                    await dbContext.SaveChangesAsync();
+                }
             }
-        }
 
-        return RedirectToPage("Game", new { gameId = GameId });
+            return RedirectToPage("Game", new { gameId = gameId });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
+            return RedirectToPage("Game", new { gameId = gameId });
+        }
     }
 }
