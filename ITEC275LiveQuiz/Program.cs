@@ -5,6 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Force Production environment in Railway
+if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL")))
+{
+    builder.Environment.EnvironmentName = "Production";
+}
+
 // Configure Railway port
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
@@ -55,6 +61,8 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.Name = ".LiveQuiz.Session";
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 var app = builder.Build();
