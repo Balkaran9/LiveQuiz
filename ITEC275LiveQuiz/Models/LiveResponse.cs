@@ -9,6 +9,7 @@ public class LiveResponse
     public DateTime AnsweredAt { get; set; } = DateTime.UtcNow;
     public bool IsCorrect { get; set; }
     public int TimeMs { get; set; }
+    public int PointsEarned { get; set; }
 
     public LiveQuestion? LiveQuestion { get; set; }
     public LiveParticipant? LiveParticipant { get; set; }

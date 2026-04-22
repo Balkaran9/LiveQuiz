@@ -135,6 +135,16 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
             
             Console.WriteLine($"Found answer: {answer.AnswerId}, IsCorrect: {answer.IsCorrect}");
 
+            // Calculate points based on speed (1000-2000 points for correct answers)
+            int pointsEarned = 0;
+            if (answer.IsCorrect)
+            {
+                var timeLimitMs = (liveQuestion.Question?.TimeLimitSeconds ?? 30) * 1000;
+                var timeMs = Math.Max(0, elapsedMs);
+                var speedBonus = Math.Max(0, timeLimitMs - timeMs) / timeLimitMs;
+                pointsEarned = (int)(1000 + (speedBonus * 1000));
+            }
+
             var response = new LiveResponse
             {
                 LiveQuestionId = liveQuestion.LiveQuestionId,
@@ -142,13 +152,14 @@ public class GameModel(AppDbContext dbContext) : ITEC275LiveQuiz.Pages.AppPageMo
                 AnswerId = answer.AnswerId,
                 AnsweredAt = DateTime.UtcNow,
                 IsCorrect = answer.IsCorrect,
-                TimeMs = Math.Max(0, elapsedMs)
+                TimeMs = Math.Max(0, elapsedMs),
+                PointsEarned = pointsEarned
             };
 
             dbContext.LiveResponses.Add(response);
             await dbContext.SaveChangesAsync();
             
-            Console.WriteLine($"SUCCESS: Saved LiveResponse - QuestionId: {liveQuestion.LiveQuestionId}, ParticipantId: {participantId.Value}, AnswerId: {answer.AnswerId}");
+            Console.WriteLine($"SUCCESS: Saved LiveResponse - QuestionId: {liveQuestion.LiveQuestionId}, ParticipantId: {participantId.Value}, AnswerId: {answer.AnswerId}, Points: {pointsEarned}");
             
             // Small delay to ensure database commit is complete
             await Task.Delay(100);
